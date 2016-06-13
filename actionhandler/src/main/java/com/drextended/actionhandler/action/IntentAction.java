@@ -100,8 +100,8 @@ public abstract class IntentAction<M> extends BaseAction<M> {
     /**
      * If {@link #mIntentType} was set as {@link IntentType#START_ACTIVITY}
      * and {@link #getIntent(View, Context, String, Object)} return not null then this method called.
-     * If build Sdk version < 16 then {@link Context#startActivity(Intent)} will be used,
-     * else {@link Context#startActivity(Intent, Bundle)} will be used with {@link ActivityOptionsCompat}
+     * If build Sdk version below 16 then {@link Context#startActivity(Intent)} will be used,
+     * else {@link Context#startActivity(Intent, Bundle)} will be used with {@code ActivityOptionsCompat}
      * as second argument, provided by {@link #prepareTransition(Context, View, Intent)} method.
      *
      * @param context The Context, which generally get from view by {@link View#getContext()}
@@ -182,7 +182,7 @@ public abstract class IntentAction<M> extends BaseAction<M> {
     /**
      * Additional options for how the Activity should be started.
      * May be null if there are no options.
-     * Used only if {@link #mIntentType} set as {@link IntentType#START_ACTIVITY} and build Sdk version >= 16.
+     * Used only if {@link #mIntentType} set as {@link IntentType#START_ACTIVITY} and build Sdk version greater 15.
      * Intended for settings activity transition or shared element transition
      *
      * @param context The Context, which generally get from view by {@link View#getContext()}

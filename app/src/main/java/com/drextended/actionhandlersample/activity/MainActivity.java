@@ -38,7 +38,6 @@ import com.drextended.actionhandlersample.action.ShowToastAction;
 import com.drextended.actionhandlersample.action.SimpleAnimationAction;
 import com.drextended.actionhandlersample.action.TrackAction;
 
-@SuppressWarnings("ConstantConditions")
 public class MainActivity extends AppCompatActivity implements OnActionFiredListener, ActionInterceptor {
 
     private static final String EXTRA_LAST_ACTION_TEXT = "EXTRA_LAST_ACTION_TEXT";
@@ -78,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
         initView();
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void initView() {
         mLabelView = (TextView) findViewById(R.id.label);
 

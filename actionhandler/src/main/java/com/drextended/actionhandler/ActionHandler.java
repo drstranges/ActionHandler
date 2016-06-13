@@ -80,10 +80,10 @@ public class ActionHandler implements ActionClickListener {
     }
 
     /**
-     * Check if there is at least one action that can try to handle {@param actionType}
+     * Check if there is at least one action that can try to handle {@code actionType}
      *
      * @param actionType The action type to check
-     * @return true if there is at least one action that can try to handle {@param actionType},
+     * @return true if there is at least one action that can try to handle {@code actionType},
      * false otherwise.
      */
     public boolean canHandle(final String actionType) {

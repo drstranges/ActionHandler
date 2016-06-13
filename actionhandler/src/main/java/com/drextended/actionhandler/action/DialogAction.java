@@ -29,7 +29,7 @@ import com.drextended.actionhandler.liastener.OnActionFiredListener;
  * You can extend this class for make custom action on just wrap another action
  * using {@link #wrap(String, Action)}
  *
- * @param <M>
+ * @param <M>    type of model to handle
  */
 public abstract class DialogAction<M> extends BaseAction<M> {
 

@@ -148,6 +148,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      *                   Generally it is that view which was clicked and initiated action to fire
      * @param actionType Type of the action which was executed.
      * @param oldModel   The model which was used in request.
+     * @param e          The Error
      */
     protected void onError(Context context, View view, String actionType, M oldModel, Throwable e) {
         if (mShowProgressEnabled) ProgressBarController.hideProgressDialog();
