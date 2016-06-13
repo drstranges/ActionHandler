@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Shared Scope" pattern="file[actionhandler]:src/main/java//*||file[actionhandler]:src/main/res//*" />
+</component>
