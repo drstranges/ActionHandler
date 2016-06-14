@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
     }
 
     @Override
-    public boolean onInterceptAction(View view, String actionType, Object model) {
+    public boolean onInterceptAction(Context context, View view, String actionType, Object model) {
         switch (actionType) {
             case ActionType.OPEN_NEW_SCREEN:
                 final boolean consumed = mClickCount++ % 7 == 0;

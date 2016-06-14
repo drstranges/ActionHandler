@@ -16,6 +16,7 @@
 
 package com.drextended.actionhandler;
 
+import android.content.Context;
 import android.view.View;
 
 import com.drextended.actionhandler.action.Action;
@@ -102,20 +103,34 @@ public class ActionHandler implements ActionClickListener {
      */
     @Override
     public void onActionClick(View view, String actionType, Object model) {
+        if (view == null) return;
+        final Context context = view.getContext();
 
+        fireAction(context, view, actionType, model);
+
+    }
+
+    /**
+     * Call for initiate actions to fire.
+     *
+     * @param context    The Context, which generally get from view by {@link View#getContext()}
+     * @param view       The view that was clicked.
+     * @param actionType The action type, which appointed to the view
+     * @param model      The model, which  appointed to the view and should be handled
+     */
+    public void fireAction(Context context, View view, String actionType, Object model) {
         if (mActionInterceptor != null
-                && mActionInterceptor.onInterceptAction(view, actionType, model)) return;
+                && mActionInterceptor.onInterceptAction(context, view, actionType, model)) return;
 
         for (ActionPair actionPair : mActions) {
             if (actionPair.actionType == null || actionPair.actionType.equals(actionType)) {
                 final Action action = actionPair.action;
                 if (action != null && action.isModelAccepted(model)) {
                     //noinspection unchecked
-                    action.onFireAction(view.getContext(), view, actionType, model);
+                    action.onFireAction(context, view, actionType, model);
                 }
             }
         }
-
     }
 
     /**
