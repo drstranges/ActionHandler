@@ -134,7 +134,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      */
     protected void onSuccess(Context context, View view, String actionType, M oldModel, RM response) {
         hideProgressDialog();
-        notifyOnActionFired(actionType, oldModel);
+        notifyOnActionFired(view, actionType, oldModel);
     }
 
     /**

@@ -15,6 +15,8 @@
  */
 package com.drextended.actionhandler.action;
 
+import android.view.View;
+
 import com.drextended.actionhandler.listener.OnActionFiredListener;
 
 import java.util.ArrayList;
@@ -34,7 +36,7 @@ public abstract class BaseAction<M> implements Action<M> {
     protected List<OnActionFiredListener> mActionFiredListeners = new ArrayList<>(1);
 
     /**
-     * Add a listener that will be called when method {@link #notifyOnActionFired(String, Object)}
+     * Add a listener that will be called when method {@link #notifyOnActionFired(View, String, Object)}
      * called. Generally if action fired successfully.
      *
      * @param listener The listener that will be called when action fired successfully.
@@ -62,12 +64,14 @@ public abstract class BaseAction<M> implements Action<M> {
     /**
      * Notify any registered listeners that the action has been fired.
      *
-     * @param actionType    type of the action
-     * @param model         model, which was handled
+     * @param view       The View, which can be used for prepare any visual effect (like animation),
+     *                   Generally it is that view which was clicked and initiated action to fire.
+     * @param actionType type of the action
+     * @param model      model, which was handled
      */
-    public void notifyOnActionFired(String actionType, Object model) {
+    public void notifyOnActionFired(View view, String actionType, Object model) {
         for (OnActionFiredListener listener : mActionFiredListeners) {
-            listener.onClickActionFired(actionType, model);
+            listener.onActionFired(view, actionType, model);
         }
     }
 }

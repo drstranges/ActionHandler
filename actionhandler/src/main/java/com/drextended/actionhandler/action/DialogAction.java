@@ -154,8 +154,8 @@ public abstract class DialogAction<M> extends BaseAction<M> {
         }
 
         @Override
-        public void onClickActionFired(String actionType, Object model) {
-            notifyOnActionFired(actionType, model);
+        public void onActionFired(View view, String actionType, Object model) {
+            notifyOnActionFired(view, actionType, model);
         }
     }
 }

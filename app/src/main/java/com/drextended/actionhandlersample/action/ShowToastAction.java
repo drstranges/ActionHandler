@@ -35,6 +35,6 @@ public class ShowToastAction extends BaseAction<String> {
     public void onFireAction(Context context, @Nullable View view, String actionType, @Nullable String model) {
         Toast.makeText(context.getApplicationContext(),
                 context.getString(R.string.toast_message, model), Toast.LENGTH_SHORT).show();
-        notifyOnActionFired(actionType, model);
+        notifyOnActionFired(view, actionType, model);
     }
 }

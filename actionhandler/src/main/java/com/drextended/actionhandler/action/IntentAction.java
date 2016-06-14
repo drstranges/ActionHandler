@@ -80,7 +80,7 @@ public abstract class IntentAction<M> extends BaseAction<M> {
                     break;
             }
 
-            notifyOnActionFired(actionType, model);
+            notifyOnActionFired(view, actionType, model);
         } catch (Exception e) {
             e.printStackTrace();
             onError(e);

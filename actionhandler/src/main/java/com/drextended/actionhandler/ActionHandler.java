@@ -53,7 +53,7 @@ public class ActionHandler implements ActionClickListener {
     /**
      * Set new callback to be invoked when an action is executed successfully
      * Note: It is called only for BaseActions.
-     * You should call {@link BaseAction#notifyOnActionFired(String, Object)} to invoke this callback.
+     * You should call {@link BaseAction#notifyOnActionFired(View, String, Object)} to invoke this callback.
      *
      * @param actionFiredListener new callback to be invoked when an action is executed successfully
      */
@@ -167,7 +167,7 @@ public class ActionHandler implements ActionClickListener {
         /**
          * Set new callback to be invoked when an action is executed successfully
          * Note: It is called only for BaseActions.
-         * You should call {@link BaseAction#notifyOnActionFired(String, Object)} to invoke this callback.
+         * You should call {@link BaseAction#notifyOnActionFired(View, String, Object)} to invoke this callback.
          *
          * @param actionFiredListener new callback to be invoked when an action is executed successfully
          */

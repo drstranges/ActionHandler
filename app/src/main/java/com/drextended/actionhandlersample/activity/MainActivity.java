@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
     }
 
     @Override
-    public void onClickActionFired(String actionType, Object model) {
+    public void onActionFired(String actionType, Object model) {
         switch (actionType) {
             case ActionType.OPEN_NEW_SCREEN:
                 setLastActionText("Intent Action");
