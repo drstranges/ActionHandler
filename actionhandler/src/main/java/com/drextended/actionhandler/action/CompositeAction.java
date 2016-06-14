@@ -58,6 +58,24 @@ public class CompositeAction<M> extends BaseAction<M> {
     // True for show a menu as popup menu, false for show a menu as alert dialog.
     protected boolean mShowAsPopupMenuEnabled;
 
+    // Flag for settings how a single action item should be fired.
+    // True for show a menu, false for fire action directly.
+    private boolean mDisplayDialogForSingleAction = true;
+
+    /**
+     * Specific type of action which can contain a few other actions, show them as menu items,
+     * and fire an action, if corresponding item clicked.
+     *
+     * @param titleResId                   resource id for corresponding menu item's title
+     * @param actions                      action item, which contains menu item titles and actions,
+     *                                     which will be fired if corresponding menu item selected
+     * @param displayDialogForSingleAction True for show a menu, false for fire action directly
+     *                                     if there is only single action in a menu.
+     */
+    public CompositeAction(@StringRes int titleResId, boolean displayDialogForSingleAction, ActionItem... actions) {
+        this(new SimpleTitleProvider<M>(titleResId), displayDialogForSingleAction, actions);
+    }
+
     /**
      * Specific type of action which can contain a few other actions, show them as menu items,
      * and fire an action, if corresponding item clicked.
@@ -68,6 +86,22 @@ public class CompositeAction<M> extends BaseAction<M> {
      */
     public CompositeAction(@StringRes int titleResId, ActionItem... actions) {
         this(new SimpleTitleProvider<M>(titleResId), actions);
+    }
+
+    /**
+     * Specific type of action which can contain a few other actions, show them as menu items,
+     * and fire an action, if corresponding item clicked.
+     *
+     * @param titleProvider                provider for corresponding menu item's title
+     * @param actions                      action item, which contains menu item titles and actions,
+     *                                     which will be fired if corresponding menu item selected
+     * @param displayDialogForSingleAction True for show a menu, false for fire action directly
+     *                                     if there is only single action in a menu.
+     */
+    public CompositeAction(TitleProvider<M> titleProvider, boolean displayDialogForSingleAction, ActionItem... actions) {
+        if (actions == null) throw new InvalidParameterException("Provide at least one action");
+        mActions = actions;
+        mTitleProvider = titleProvider;
     }
 
     /**
@@ -119,9 +153,42 @@ public class CompositeAction<M> extends BaseAction<M> {
         return false;
     }
 
+    /**
+     * Count actions which can handle given model
+     *
+     * @param model The model to check if it can be handled.
+     * @return Count for actions which can handle given model
+     */
+    private int getAcceptedActionCount(Object model) {
+        int count = 0;
+        for (ActionItem action : mActions) {
+            if (action.action.isModelAccepted(model)) count++;
+        }
+        return count;
+    }
+
+    /**
+     * Returns first action which can handle given model
+     *
+     * @param model The model to check if it can be handled.
+     * @return first action which can handle given model
+     */
+    private ActionItem getFirstAcceptedActionItem(M model) {
+        for (ActionItem action : mActions) {
+            if (action.action.isModelAccepted(model)) return action;
+        }
+        return null;
+    }
+
     @Override
     public void onFireAction(Context context, @Nullable View view, @Nullable String actionType, @Nullable M model) {
-        showMenu(context, view, model);
+        if (!mDisplayDialogForSingleAction && getAcceptedActionCount(model) == 1) {
+            final ActionItem actionItem = getFirstAcceptedActionItem(model);
+            if (actionItem != null) //noinspection unchecked
+                actionItem.action.onFireAction(context, view, actionType, model);
+        } else {
+            showMenu(context, view, model);
+        }
     }
 
     /**
