@@ -103,8 +103,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * @param model      The model which should be handled by the action. Can be null.
      */
     protected void onRequestStarted(Context context, View view, String actionType, M model) {
-        if (mShowProgressEnabled) ProgressBarController
-                .showProgressDialog(context, getProgressDialogMessage(context, view, actionType, model));
+        showDialog(context, view, actionType, model);
     }
 
     /**
@@ -134,8 +133,29 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * @param response   network response
      */
     protected void onSuccess(Context context, View view, String actionType, M oldModel, RM response) {
-        if (mShowProgressEnabled) ProgressBarController.hideProgressDialog();
+        hideDialog();
         notifyOnActionFired(actionType, oldModel);
+    }
+
+    /**
+     * Call for show dialog
+     *
+     * @param context    The Context, which generally get from view by {@link View#getContext()}
+     * @param view       The view, which can be used for prepare any visual effect (like animation),
+     *                   Generally it is that view which was clicked and initiated action to fire
+     * @param actionType Type of the action which was executed. Can be null.
+     * @param model      The model which should be handled by the action. Can be null.
+     */
+    public void showDialog(Context context, View view, String actionType, M model) {
+        if (mShowProgressEnabled) ProgressBarController
+                .showProgressDialog(context, getProgressDialogMessage(context, view, actionType, model));
+    }
+
+    /**
+     * Call for hide dialog
+     */
+    public void hideDialog() {
+        if (mShowProgressEnabled) ProgressBarController.hideProgressDialog();
     }
 
     /**
@@ -151,7 +171,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * @param e          The Error
      */
     protected void onError(Context context, View view, String actionType, M oldModel, Throwable e) {
-        if (mShowProgressEnabled) ProgressBarController.hideProgressDialog();
+        hideDialog();
     }
 
     /**
