@@ -31,7 +31,7 @@ import com.drextended.actionhandler.util.ProgressBarController;
  */
 public abstract class RequestAction<RM, M> extends DialogAction<M> {
     protected boolean mShowProgressEnabled;
-    protected boolean mShowDialog;
+    protected boolean mShowDialogEnabled;
 
     public RequestAction() {
     }
@@ -40,11 +40,11 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * Base action for implementing call a network request
      *
      * @param showProgressEnabled Set true to show progress dialog while request
-     * @param showDialog          Set true to show dialog before action fired
+     * @param showDialogEnabled          Set true to show dialog before action fired
      */
-    public RequestAction(boolean showProgressEnabled, boolean showDialog) {
+    public RequestAction(boolean showProgressEnabled, boolean showDialogEnabled) {
         mShowProgressEnabled = showProgressEnabled;
-        mShowDialog = showDialog;
+        mShowDialogEnabled = showDialogEnabled;
     }
 
     /**
@@ -59,15 +59,15 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
     /**
      * Set dialog before action fired enabled
      *
-     * @param showDialog Set true to show dialog before action fired
+     * @param showDialogEnabled Set true to show dialog before action fired
      */
-    public void setShowDialog(boolean showDialog) {
-        mShowDialog = showDialog;
+    public void setShowDialogEnabled(boolean showDialogEnabled) {
+        mShowDialogEnabled = showDialogEnabled;
     }
 
     @Override
     public void onFireAction(Context context, @Nullable View view, String actionType, @Nullable M model) {
-        if (mShowDialog) {
+        if (mShowDialogEnabled) {
             super.onFireAction(context, view, actionType, model);
         } else {
             makeRequest(context, view, actionType, model);
