@@ -4,8 +4,8 @@
 
 ## Overview
 
-This library intended to allow easy manage action handling in android projects.
-Just collect actions in a handler and bind them to the views.
+This library intended to simplify the work with action handling in android projects.
+Just collect actions in a handler and bind them to views.
 
 Add library as gradle dependency
 
@@ -51,10 +51,10 @@ dependencies {
                 .build();
                 
     ...
-    // and then on view Click            
-    mActionHandler.onActionClick(v, ActionType.OPEN_NEW_SCREEN, getSampleModel());
+    // and then on view click
+    mActionHandler.onActionClick(view, ActionType.OPEN_NEW_SCREEN, getSampleModel());
 ```
-or with Data Binding
+with Data Binding
 
 **item_user.xml**
 ``` xml
