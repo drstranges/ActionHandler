@@ -138,7 +138,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
     }
 
     /**
-     * Call for show dialog
+     * Call for show progress dialog
      *
      * @param context    The Context, which generally get from view by {@link View#getContext()}
      * @param view       The view, which can be used for prepare any visual effect (like animation),
@@ -152,7 +152,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
     }
 
     /**
-     * Call for hide dialog
+     * Call for hide progress dialog
      */
     public void hideProgressDialog() {
         if (mShowProgressEnabled) ProgressBarController.hideProgressDialog();
