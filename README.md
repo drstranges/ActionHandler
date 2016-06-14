@@ -1,6 +1,6 @@
 # ActionHandler
 
-[![Release](https://img.shields.io/badge/jcenter-0.1.1-blue.svg)](https://bintray.com/drstranges/android-extended/action-handler)
+[![Release](https://img.shields.io/badge/jcenter-0.1.2-blue.svg)](https://bintray.com/drstranges/android-extended/action-handler)
 
 ## Overview
 
@@ -17,6 +17,13 @@ dependencies {
     compile 'com.drextended.actionhandler:action-handler:0.1.1'
 }
 ```
+
+## Features
+- `.IntentAction` - Action with Intent: start activity, satrt service, send broadcast.
+- `.DialogAction` - Aaction which shows simple dialog before it fired.
+- `.RequestAction` - Simple action which makes network request.
+- `.CompositeAction` - Composite action which can contain other actions inside and shows simple menu to choose one of them when fired.
+- Any custom actions...
 
 ## Example
 
@@ -73,3 +80,19 @@ or with Data Binding
 
 </layout>
 ```
+License
+=======
+
+    Copyright 2016 Roman Donchenko
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
