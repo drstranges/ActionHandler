@@ -1,6 +1,6 @@
 # ActionHandler
 
-[![Release](https://img.shields.io/badge/jcenter-0.1.2-blue.svg)](https://bintray.com/drstranges/android-extended/action-handler)
+[![Release](https://img.shields.io/badge/jcenter-0.1.3-blue.svg)](https://bintray.com/drstranges/android-extended/action-handler)
 
 ## Overview
 
