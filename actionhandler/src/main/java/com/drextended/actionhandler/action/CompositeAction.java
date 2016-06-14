@@ -102,6 +102,7 @@ public class CompositeAction<M> extends BaseAction<M> {
         if (actions == null) throw new InvalidParameterException("Provide at least one action");
         mActions = actions;
         mTitleProvider = titleProvider;
+        mDisplayDialogForSingleAction = displayDialogForSingleAction;
     }
 
     /**
