@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package com.drextended.actionhandler.liastener;
+package com.drextended.actionhandler.listener;
 
 import android.view.View;
 

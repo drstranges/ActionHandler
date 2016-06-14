@@ -19,7 +19,7 @@ package com.drextended.actionhandler.util;
 import android.databinding.BindingAdapter;
 import android.view.View;
 
-import com.drextended.actionhandler.liastener.ActionClickListener;
+import com.drextended.actionhandler.listener.ActionClickListener;
 
 /**
  * Helper class for collect all data binding adapters in one place

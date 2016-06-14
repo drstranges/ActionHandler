@@ -22,7 +22,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
 
-import com.drextended.actionhandler.liastener.OnActionFiredListener;
+import com.drextended.actionhandler.listener.OnActionFiredListener;
 
 /**
  * Can be used for make an action which show simple dialog before it has been fired.

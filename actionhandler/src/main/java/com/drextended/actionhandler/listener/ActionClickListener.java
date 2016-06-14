@@ -14,18 +14,20 @@
  *   limitations under the License.
  */
 
-package com.drextended.actionhandler.liastener;
+package com.drextended.actionhandler.listener;
+
+import android.view.View;
 
 /**
- * Interface definition for a callback to be invoked when an action is executed successfully.
+ * Interface definition for a callback to be invoked when a view with an action is clicked.
  */
-public interface OnActionFiredListener {
-
+public interface ActionClickListener {
     /**
-     * Called after an action is executed successfully.
+     * Called when a view with an action is clicked.
      *
-     * @param actionType The action type, which appointed to the view
-     * @param model      The model, which  appointed to the view and should be handled
+     * @param view          The view that was clicked.
+     * @param actionType    The action type, which appointed to the view
+     * @param model         The model, which  appointed to the view and should be handled
      */
-    void onClickActionFired(String actionType, Object model);
+    void onActionClick(final View view, final String actionType, final Object model);
 }

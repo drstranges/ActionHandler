@@ -15,7 +15,7 @@
  */
 package com.drextended.actionhandler.action;
 
-import com.drextended.actionhandler.liastener.OnActionFiredListener;
+import com.drextended.actionhandler.listener.OnActionFiredListener;
 
 import java.util.ArrayList;
 import java.util.List;
