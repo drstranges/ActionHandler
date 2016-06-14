@@ -27,7 +27,7 @@ dependencies {
 
 ## Example
 
-*MainActivity.java**
+**MainActivity.java**
 ```java
     mActionHandler = new ActionHandler.Builder()
                 .addAction(null, new SimpleAnimationAction()) // Applied for any actionType
