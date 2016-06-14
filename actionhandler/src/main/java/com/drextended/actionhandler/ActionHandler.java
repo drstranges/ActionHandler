@@ -104,7 +104,7 @@ public class ActionHandler implements ActionClickListener {
     public void onActionClick(View view, String actionType, Object model) {
 
         if (mActionInterceptor != null
-                && mActionInterceptor.onIntercept(view, actionType, model)) return;
+                && mActionInterceptor.onInterceptAction(view, actionType, model)) return;
 
         for (ActionPair actionPair : mActions) {
             if (actionPair.actionType == null || actionPair.actionType.equals(actionType)) {
