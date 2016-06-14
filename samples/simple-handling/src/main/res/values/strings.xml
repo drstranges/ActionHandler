@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">ActionHandler</string>
+    <string name="second_activity">Second Activity</string>
+    <string name="toast_message">Action Fired! Model: %1$s</string>
+    <string name="fire_intent_action">Fire Intent Action</string>
+    <string name="fire_simple_action">Fire Simple Action</string>
+    <string name="fire_dialog_action">Fire Dialog Action</string>
+    <string name="fire_request_action">Fire Request Action</string>
+    <string name="message_action_intercepted">Oops. Action has ben intercepted!) Try one more time!)</string>
+    <string name="action_dialog_message">This is the dialog action message</string>
+    <string name="action_request_dialog_message">Are you sure? Model: %1$s</string>
+    <string name="last_action_label">Last successful action: %1$s</string>
+    <string name="fire_composite_action">Fire composite action</string>
+</resources>

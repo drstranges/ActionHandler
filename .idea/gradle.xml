@@ -9,7 +9,9 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/actionhandler" />
-            <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/samples" />
+            <option value="$PROJECT_DIR$/samples/databinding" />
+            <option value="$PROJECT_DIR$/samples/simple-handling" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

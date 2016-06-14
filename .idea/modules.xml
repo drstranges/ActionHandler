@@ -4,7 +4,9 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/ActionHandler.iml" filepath="$PROJECT_DIR$/ActionHandler.iml" />
       <module fileurl="file://$PROJECT_DIR$/actionhandler/actionhandler.iml" filepath="$PROJECT_DIR$/actionhandler/actionhandler.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/samples/databinding/databinding.iml" filepath="$PROJECT_DIR$/samples/databinding/databinding.iml" />
+      <module fileurl="file://$PROJECT_DIR$/samples/samples.iml" filepath="$PROJECT_DIR$/samples/samples.iml" />
+      <module fileurl="file://$PROJECT_DIR$/samples/simple-handling/simple-handling.iml" filepath="$PROJECT_DIR$/samples/simple-handling/simple-handling.iml" />
     </modules>
   </component>
 </project>

@@ -14,15 +14,12 @@
  *   limitations under the License.
  */
 
-package com.drextended.actionhandlersample.activity;
+package com.drextended.databinding.viewmodel;
 
 import android.content.Context;
+import android.databinding.ObservableField;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.drextended.actionhandler.ActionHandler;
 import com.drextended.actionhandler.action.CompositeAction;
@@ -30,28 +27,42 @@ import com.drextended.actionhandler.action.CompositeAction.ActionItem;
 import com.drextended.actionhandler.action.DialogAction;
 import com.drextended.actionhandler.listener.ActionInterceptor;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
-import com.drextended.actionhandlersample.ActionType;
-import com.drextended.actionhandlersample.R;
-import com.drextended.actionhandlersample.action.OpenSecondActivity;
-import com.drextended.actionhandlersample.action.SampleRequestAction;
-import com.drextended.actionhandlersample.action.ShowToastAction;
-import com.drextended.actionhandlersample.action.SimpleAnimationAction;
-import com.drextended.actionhandlersample.action.TrackAction;
+import com.drextended.databinding.ActionType;
+import com.drextended.databinding.R;
+import com.drextended.databinding.action.OpenSecondActivity;
+import com.drextended.databinding.action.SampleRequestAction;
+import com.drextended.databinding.action.ShowToastAction;
+import com.drextended.databinding.action.SimpleAnimationAction;
+import com.drextended.databinding.action.TrackAction;
 
-public class MainActivity extends AppCompatActivity implements OnActionFiredListener, ActionInterceptor {
+/**
+ * Created on 15.06.2016.
+ */
+
+public class MainActivityViewModel extends BaseViewModel implements OnActionFiredListener, ActionInterceptor {
 
     private static final String EXTRA_LAST_ACTION_TEXT = "EXTRA_LAST_ACTION_TEXT";
 
-    private TextView mLabelView;
-    private ActionHandler mActionHandler;
+    public ObservableField<String> lastActionText = new ObservableField<>();
+    public ObservableField<String> model = new ObservableField<>();
+    public ActionHandler actionHandler;
+
     private int mClickCount;
+    private Callback mCallback;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    public MainActivityViewModel(Context context, Callback callback) {
+        super(context);
+        mCallback = callback != null ? callback : Callback.EMPTY_CALLBACK;
+        actionHandler = buildActionHandler();
+        refreshModel();
+    }
 
-        mActionHandler = new ActionHandler.Builder()
+    private void refreshModel() {
+        model.set("Model (" + System.currentTimeMillis() + ")");
+    }
+
+    private ActionHandler buildActionHandler() {
+        return new ActionHandler.Builder()
                 .addAction(null, new SimpleAnimationAction()) // Applied for any actionType
                 .addAction(null, new TrackAction()) // Applied for any actionType
                 .addAction(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity())
@@ -73,53 +84,6 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
                 .setActionInterceptor(this)
                 .setActionFiredListener(this)
                 .build();
-
-        initView();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    private void initView() {
-        mLabelView = (TextView) findViewById(R.id.label);
-
-        findViewById(R.id.button1).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mActionHandler.onActionClick(v, ActionType.OPEN_NEW_SCREEN, getSampleModel());
-            }
-        });
-
-        findViewById(R.id.button2).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mActionHandler.onActionClick(v, ActionType.FIRE_ACTION, getSampleModel());
-            }
-        });
-
-        findViewById(R.id.button3).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mActionHandler.onActionClick(v, ActionType.FIRE_DIALOG_ACTION, getSampleModel());
-            }
-        });
-
-        findViewById(R.id.button4).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mActionHandler.onActionClick(v, ActionType.FIRE_REQUEST_ACTION, getSampleModel());
-            }
-        });
-
-        findViewById(R.id.button5).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mActionHandler.onActionClick(v, ActionType.FIRE_COMPOSITE_ACTION, getSampleModel());
-            }
-        });
-    }
-
-    @NonNull
-    private String getSampleModel() {
-        return "Time (" + System.currentTimeMillis() + ")";
     }
 
     @Override
@@ -128,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
             case ActionType.OPEN_NEW_SCREEN:
                 final boolean consumed = mClickCount++ % 7 == 0;
                 if (consumed) {
-                    Toast.makeText(getApplicationContext(), R.string.message_action_intercepted, Toast.LENGTH_SHORT).show();
+                    mCallback.showMessage(getString(R.string.message_action_intercepted));
                 }
                 return consumed;
 //            case ActionType.FIRE_ACTION:
@@ -139,36 +103,39 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
     }
 
     @Override
-    public void onActionFired(String actionType, Object model) {
+    public void onActionFired(View view, String actionType, Object model) {
         switch (actionType) {
             case ActionType.OPEN_NEW_SCREEN:
-                setLastActionText("Intent Action");
+                lastActionText.set("Intent Action");
                 break;
             case ActionType.FIRE_ACTION:
-                setLastActionText("Simple Action");
+                lastActionText.set("Simple Action");
                 break;
             case ActionType.FIRE_DIALOG_ACTION:
-                setLastActionText("Dialog Action");
+                lastActionText.set("Dialog Action");
                 break;
             case ActionType.FIRE_REQUEST_ACTION:
-                setLastActionText("Request Action");
+                lastActionText.set("Request Action");
                 break;
         }
     }
 
-    private void setLastActionText(String label) {
-        mLabelView.setText(getString(R.string.last_action_label, label));
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putString(EXTRA_LAST_ACTION_TEXT, lastActionText.get());
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putString(EXTRA_LAST_ACTION_TEXT, mLabelView.getText().toString());
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        lastActionText.set(savedInstanceState.getString(EXTRA_LAST_ACTION_TEXT));
     }
 
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        setLastActionText(savedInstanceState.getString(EXTRA_LAST_ACTION_TEXT));
+    public interface Callback {
+
+        void showMessage(String message);
+
+        Callback EMPTY_CALLBACK = new Callback() {
+            @Override
+            public void showMessage(String message) {
+            }
+        };
     }
 }

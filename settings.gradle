@@ -1,1 +1,1 @@
-include ':app', ':actionhandler'
+include ':samples:simple-handling', ':samples:databinding', ':actionhandler'
