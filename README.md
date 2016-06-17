@@ -1,11 +1,11 @@
 # ActionHandler
 
-[![Release](https://img.shields.io/badge/jcenter-0.1.11-blue.svg)](https://bintray.com/drstranges/android-extended/action-handler)
+[![Release](https://img.shields.io/badge/jcenter-0.1.12-blue.svg)](https://bintray.com/drstranges/android-extended/action-handler)
 
 ## Overview
 
-This library intended to allow easy manage action handling in android projects.
-Just collect actions in a handler and bind them to the views.
+This library intended to simplify the work with action handling in android projects.
+Just collect actions in a handler and bind them to views.
 
 Add library as gradle dependency
 
@@ -14,7 +14,7 @@ repositories {
     jcenter()
 }
 dependencies {
-    compile 'com.drextended.actionhandler:actionhandler:0.1.11'
+    compile 'com.drextended.actionhandler:actionhandler:0.1.12'
 }
 ```
 
@@ -27,7 +27,7 @@ dependencies {
 
 ## Example
 
-*MainActivity.java**
+**MainActivity.java**
 ```java
     mActionHandler = new ActionHandler.Builder()
                 .addAction(null, new SimpleAnimationAction()) // Applied for any actionType
@@ -51,10 +51,10 @@ dependencies {
                 .build();
                 
     ...
-    // and then on view Click            
-    mActionHandler.onActionClick(v, ActionType.OPEN_NEW_SCREEN, getSampleModel());
+    // and then on view click
+    mActionHandler.onActionClick(view, ActionType.OPEN_NEW_SCREEN, getSampleModel());
 ```
-or with Data Binding
+with Data Binding
 
 **item_user.xml**
 ``` xml
