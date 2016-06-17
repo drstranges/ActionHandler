@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 
 ext {
-    libraryVersionRevision = 12
+    libraryVersionRevision = 13
     libraryVersionMinor = 1
     libraryVersionMajor = 0
 
@@ -60,7 +60,7 @@ dependencies {
     compile 'com.android.support:support-annotations:23.4.0'
     javadocDeps 'com.android.support:support-annotations:23.4.0'
     compile 'com.android.support:appcompat-v7:23.4.0'
-    compile 'com.android.databinding:baseLibrary:2.1.0'
+
 }
 
 apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
