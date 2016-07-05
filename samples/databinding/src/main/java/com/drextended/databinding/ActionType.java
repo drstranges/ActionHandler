@@ -21,5 +21,6 @@ public class ActionType {
     public static final String FIRE_ACTION = "fire_action";
     public static final String FIRE_DIALOG_ACTION = "fire_dialog_action";
     public static final String FIRE_REQUEST_ACTION = "fire_request_action";
+    public static final String FIRE_RX_REQUEST_ACTION = "fire_rx_request_action";
     public static final String FIRE_COMPOSITE_ACTION = "composite_action";
 }

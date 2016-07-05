@@ -31,6 +31,7 @@ import com.drextended.databinding.ActionType;
 import com.drextended.databinding.R;
 import com.drextended.databinding.action.OpenSecondActivity;
 import com.drextended.databinding.action.SampleRequestAction;
+import com.drextended.databinding.action.SampleRxRequestAction;
 import com.drextended.databinding.action.ShowToastAction;
 import com.drextended.databinding.action.SimpleAnimationAction;
 import com.drextended.databinding.action.TrackAction;
@@ -79,7 +80,8 @@ public class MainActivityViewModel extends BaseViewModel implements OnActionFire
                                 new ActionItem(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), R.string.fire_intent_action),
                                 new ActionItem(ActionType.FIRE_ACTION, new ShowToastAction(), R.string.fire_simple_action),
                                 new ActionItem(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()), R.string.fire_dialog_action),
-                                new ActionItem(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction(), R.string.fire_request_action)
+                                new ActionItem(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction(), R.string.fire_request_action),
+                                new ActionItem(ActionType.FIRE_RX_REQUEST_ACTION, new SampleRxRequestAction(), R.string.fire_rx_request_action)
                         ))
                 .setActionInterceptor(this)
                 .setActionFiredListener(this)
@@ -126,6 +128,12 @@ public class MainActivityViewModel extends BaseViewModel implements OnActionFire
 
     public void onRestoreInstanceState(Bundle savedInstanceState) {
         lastActionText.set(savedInstanceState.getString(EXTRA_LAST_ACTION_TEXT));
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        actionHandler.cancelAll();
     }
 
     public interface Callback {

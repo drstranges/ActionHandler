@@ -132,7 +132,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * @param oldModel   The model which was used in request.
      * @param response   network response
      */
-    protected void onSuccess(Context context, View view, String actionType, M oldModel, RM response) {
+    protected void onResponseSuccess(Context context, View view, String actionType, M oldModel, RM response) {
         hideProgressDialog();
         notifyOnActionFired(view, actionType, oldModel);
     }
@@ -170,14 +170,14 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * @param oldModel   The model which was used in request.
      * @param e          The Error
      */
-    protected void onError(Context context, View view, String actionType, M oldModel, Throwable e) {
+    protected void onResponseError(Context context, View view, String actionType, M oldModel, Throwable e) {
         hideProgressDialog();
     }
 
     /**
      * Implement network request there.
-     * Note: You should call {@link #onSuccess(Context, View, String, Object, Object)} if request finished successfully
-     * and {@link #onError(Context, View, String, Object, Throwable)} if it is failed.
+     * Note: You should call {@link #onResponseSuccess(Context, View, String, Object, Object)} if request finished successfully
+     * and {@link #onResponseError(Context, View, String, Object, Throwable)} if it is failed.
      *
      * @param context    The Context, which generally get from view by {@link View#getContext()}
      * @param view       The view, which can be used for prepare any visual effect (like animation),

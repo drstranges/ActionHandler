@@ -51,23 +51,23 @@ public class SampleRequestAction extends RequestAction<String, String> {
             public void run() {
                 if (context instanceof Activity && ((Activity) context).isFinishing()) return;
                 if (mCount++ % 3 == 0) {
-                    onError(context, view, actionType, model, new Exception("Error!) Try request one more time"));
+                    onResponseError(context, view, actionType, model, new Exception("Error!) Try request one more time"));
                 } else {
-                    onSuccess(context, view, actionType, model, "Request has been done successfully");
+                    onResponseSuccess(context, view, actionType, model, "Request has been done successfully");
                 }
             }
         }, 3000);
     }
 
     @Override
-    protected void onSuccess(Context context, View view, String actionType, String oldModel, String response) {
-        super.onSuccess(context, view, actionType, oldModel, response);
+    protected void onResponseSuccess(Context context, View view, String actionType, String oldModel, String response) {
+        super.onResponseSuccess(context, view, actionType, oldModel, response);
         Toast.makeText(context, response, Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    protected void onError(Context context, View view, String actionType, String oldModel, Throwable e) {
-        super.onError(context, view, actionType, oldModel, e);
+    protected void onResponseError(Context context, View view, String actionType, String oldModel, Throwable e) {
+        super.onResponseError(context, view, actionType, oldModel, e);
         Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
     }
 }

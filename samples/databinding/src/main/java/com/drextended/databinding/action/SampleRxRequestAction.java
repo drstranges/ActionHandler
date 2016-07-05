@@ -16,21 +16,40 @@
 
 package com.drextended.databinding.action;
 
-import android.app.Activity;
 import android.content.Context;
-import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.Toast;
 
-import com.drextended.actionhandler.action.RequestAction;
+import com.drextended.actionhandler.action.RxRequestAction;
 import com.drextended.databinding.R;
 
-public class SampleRequestAction extends RequestAction<String, String> {
+import java.util.concurrent.TimeUnit;
+
+import rx.Observable;
+import rx.functions.Func1;
+
+public class SampleRxRequestAction extends RxRequestAction<String, String> {
 
     private int mCount;
 
-    public SampleRequestAction() {
+    public SampleRxRequestAction() {
         super(true, true);
+    }
+
+    @Nullable
+    @Override
+    protected Observable<String> getRequest(Context context, View view, String actionType, String model) {
+        if (mCount++ % 3 == 0) {
+            return Observable.just("").delay(2000, TimeUnit.MILLISECONDS).flatMap(new Func1<String, Observable<String>>() {
+                @Override
+                public Observable<String> call(String s) {
+                    return Observable.error(new Throwable("Request has failed"));
+                }
+            });
+        } else {
+            return Observable.just("Request has been done successfully").delay(2000, TimeUnit.MILLISECONDS);
+        }
     }
 
     @Override
@@ -43,21 +62,6 @@ public class SampleRequestAction extends RequestAction<String, String> {
         return context.getString(R.string.action_request_dialog_message, model);
     }
 
-    @Override
-    protected void onMakeRequest(final Context context, final View view, final String actionType, final String model) {
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (context instanceof Activity && ((Activity) context).isFinishing()) return;
-                if (mCount++ % 3 == 0) {
-                    onResponseError(context, view, actionType, model, new Exception("Error!) Try request one more time"));
-                } else {
-                    onResponseSuccess(context, view, actionType, model, "Request has been done successfully");
-                }
-            }
-        }, 3000);
-    }
 
     @Override
     protected void onResponseSuccess(Context context, View view, String actionType, String oldModel, String response) {

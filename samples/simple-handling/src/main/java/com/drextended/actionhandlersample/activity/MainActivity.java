@@ -171,4 +171,10 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
         super.onRestoreInstanceState(savedInstanceState);
         setLastActionText(savedInstanceState.getString(EXTRA_LAST_ACTION_TEXT));
     }
+
+    @Override
+    protected void onDestroy() {
+        mActionHandler.cancelAll();
+        super.onDestroy();
+    }
 }
