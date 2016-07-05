@@ -128,6 +128,12 @@ public class MainActivityViewModel extends BaseViewModel implements OnActionFire
         lastActionText.set(savedInstanceState.getString(EXTRA_LAST_ACTION_TEXT));
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        actionHandler.cancelAll();
+    }
+
     public interface Callback {
 
         void showMessage(String message);

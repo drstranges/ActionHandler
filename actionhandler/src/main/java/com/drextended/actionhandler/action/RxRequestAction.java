@@ -21,6 +21,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.View;
 
+import com.drextended.actionhandler.ActionHandler;
+
 import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
@@ -33,7 +35,7 @@ import rx.schedulers.Schedulers;
  * @param <RM> The type of network response
  * @param <M>  The type of model which can be handled
  */
-public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> {
+public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implements Cancelable {
     protected Subscription mSubscription;
 
     public RxRequestAction() {
@@ -95,6 +97,16 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> {
      */
     protected void unsubscribe(Subscription subscription) {
         if (subscription != null && !subscription.isUnsubscribed()) subscription.unsubscribe();
+    }
+
+    /**
+     * Unsubscribes from request observable once this method is called.
+     * Override this if you need other behaviour.
+     * For actions collected by {@link ActionHandler} this method can be called by {@link ActionHandler#cancelAll()}
+     */
+    @Override
+    public void cancel() {
+        unsubscribe(mSubscription);
     }
 
     /**

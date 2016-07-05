@@ -21,11 +21,13 @@ import android.view.View;
 
 import com.drextended.actionhandler.action.Action;
 import com.drextended.actionhandler.action.BaseAction;
+import com.drextended.actionhandler.action.Cancelable;
 import com.drextended.actionhandler.listener.ActionClickListener;
 import com.drextended.actionhandler.listener.ActionInterceptor;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -34,7 +36,7 @@ import java.util.List;
 public class ActionHandler implements ActionClickListener {
 
     // Actions which was added to the handler
-    protected List<ActionPair> mActions;
+    protected final List<ActionPair> mActions;
 
     // Callback to be invoked when an action is executed successfully
     protected OnActionFiredListener mOnActionFiredListener;
@@ -44,10 +46,10 @@ public class ActionHandler implements ActionClickListener {
     private ActionInterceptor mActionInterceptor;
 
     /**
-     * @param _actions list of actions to handle by this handler
+     * @param actions list of actions to handle by this handler
      */
-    protected ActionHandler(List<ActionPair> _actions) {
-        mActions = _actions;
+    protected ActionHandler(List<ActionPair> actions) {
+        mActions = actions != null ? actions : Collections.<ActionPair>emptyList();
     }
 
     /**
@@ -129,6 +131,19 @@ public class ActionHandler implements ActionClickListener {
                     //noinspection unchecked
                     action.onFireAction(context, view, actionType, model);
                 }
+            }
+        }
+    }
+
+    /**
+     * Call this method to force actions to cancel.
+     * Usually, you may need to call this on Activity destroy to free resources which
+     * can lead to memory leak and stop pending transaction or async calls.
+     */
+    public final void cancelAll() {
+        for (ActionPair actionPair : mActions) {
+            if (actionPair.action instanceof Cancelable) {
+                ((Cancelable) actionPair.action).cancel();
             }
         }
     }
