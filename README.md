@@ -1,5 +1,6 @@
 # ActionHandler
 
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-ActionHandler-green.svg?style=true)](https://android-arsenal.com/details/1/3841)
 [![Release](https://img.shields.io/badge/jcenter-0.1.13-blue.svg)](https://bintray.com/drstranges/android-extended/action-handler)
 
 ## Overview
