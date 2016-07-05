@@ -1,7 +1,7 @@
 # ActionHandler
 
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-ActionHandler-green.svg?style=true)](https://android-arsenal.com/details/1/3841)
-[![Release](https://img.shields.io/badge/jcenter-0.1.13-blue.svg)](https://bintray.com/drstranges/android-extended/action-handler)
+[![Release](https://img.shields.io/badge/jcenter-0.1.14-blue.svg)](https://bintray.com/drstranges/android-extended/action-handler)
 
 ## Overview
 
@@ -15,7 +15,7 @@ repositories {
     jcenter()
 }
 dependencies {
-    compile 'com.drextended.actionhandler:actionhandler:0.1.13'
+    compile 'com.drextended.actionhandler:actionhandler:0.1.14'
 }
 ```
 
@@ -23,6 +23,7 @@ dependencies {
 - `.IntentAction` - Action with Intent: start activity, satrt service, send broadcast.
 - `.DialogAction` - Aaction which shows simple dialog before it fired.
 - `.RequestAction` - Simple action which makes network request.
+- `.RxRequestAction` - Simple action which makes network request with RxJava observable calls.
 - `.CompositeAction` - Composite action which can contain other actions inside and shows simple menu to choose one of them when fired.
 - Any custom actions...
 
