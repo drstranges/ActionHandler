@@ -23,7 +23,7 @@ dependencies {
 - `.IntentAction` - Action with Intent: start activity, satrt service, send broadcast.
 - `.DialogAction` - Aaction which shows simple dialog before it fired.
 - `.RequestAction` - Simple action which makes network request.
-- `.RxRequestAction` - Simple action which makes network request with RxJava observable calls.
+- `.RxRequestAction` - Simple action which makes network requests with RxJava observable calls.
 - `.CompositeAction` - Composite action which can contain other actions inside and shows simple menu to choose one of them when fired.
 - Any custom actions...
 
@@ -38,15 +38,15 @@ dependencies {
                 .addAction(ActionType.FIRE_ACTION, new ShowToastAction())
                 .addAction(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()))
                 .addAction(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction())
-                .addAction(ActionType.FIRE_COMPOSITE_ACTION,
+                .addAction(ActionType.MENU,
                         new CompositeAction<String>(new CompositeAction.TitleProvider<String>() {
                             @Override
                             public String getTitle(Context context, String model) {
                                 return "Title (" + model + ")";
                             }
                         },
-                                new ActionItem(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), R.string.fire_intent_action),
-                                new ActionItem(ActionType.FIRE_ACTION, new ShowToastAction(), R.string.fire_simple_action),
+                                new ActionItem(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), R.string.menu_item_1),
+                                new ActionItem(ActionType.FIRE_ACTION, new ShowToastAction(), R.string.menu_item_2),
                         ))
                 .setActionInterceptor(this)
                 .setActionFiredListener(this)
