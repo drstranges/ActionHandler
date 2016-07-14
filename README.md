@@ -1,7 +1,7 @@
 # ActionHandler
 
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-ActionHandler-green.svg?style=true)](https://android-arsenal.com/details/1/3841)
-[![Release](https://img.shields.io/badge/jcenter-0.1.14-blue.svg)](https://bintray.com/drstranges/android-extended/action-handler)
+[![Release](https://img.shields.io/badge/jcenter-0.1.15-blue.svg)](https://bintray.com/drstranges/android-extended/action-handler)
 
 ## Overview
 
@@ -15,7 +15,7 @@ repositories {
     jcenter()
 }
 dependencies {
-    compile 'com.drextended.actionhandler:actionhandler:0.1.14'
+    compile 'com.drextended.actionhandler:actionhandler:0.1.15'
 }
 ```
 
@@ -27,7 +27,7 @@ dependencies {
 - `.CompositeAction` - Composite action which can contain other actions inside and shows simple menu to choose one of them when fired.
 - Any custom actions...
 
-## Example
+## Usage
 
 **MainActivity.java**
 ```java
@@ -82,6 +82,23 @@ with Data Binding
 
 </layout>
 ```
+**Note:** RequestAction and RxRequestAction can show simple progress dialog. By default they use ProgressBarController, which should be initialized with Application instance to avoid WindowLeaked Errors.
+
+```
+public class Application extends android.app.Application {
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        ProgressBarController.init(this);
+    }
+}
+```
+or
+```
+// Somewhere befor first usage
+ProgressBarController.init((Application) getApplicationContext());
+```
+
 License
 =======
 

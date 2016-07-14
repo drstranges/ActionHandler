@@ -32,6 +32,7 @@ import com.drextended.actionhandler.util.ProgressBarController;
 public abstract class RequestAction<RM, M> extends DialogAction<M> {
     protected boolean mShowProgressEnabled;
     protected boolean mShowDialogEnabled;
+    protected String mProgressTag;
 
     public RequestAction() {
     }
@@ -45,6 +46,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
     public RequestAction(boolean showProgressEnabled, boolean showDialogEnabled) {
         mShowProgressEnabled = showProgressEnabled;
         mShowDialogEnabled = showDialogEnabled;
+        if (mShowDialogEnabled) mProgressTag = getClass().getSimpleName();
     }
 
     /**
@@ -54,6 +56,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      */
     public void setShowProgressEnabled(boolean showProgressEnabled) {
         mShowProgressEnabled = showProgressEnabled;
+        if (mProgressTag == null && mShowDialogEnabled) mProgressTag = getClass().getSimpleName();
     }
 
     /**
@@ -103,7 +106,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * @param model      The model which should be handled by the action. Can be null.
      */
     protected void onRequestStarted(Context context, View view, String actionType, M model) {
-        showProgressDialog(context, view, actionType, model);
+        if (mShowProgressEnabled) showProgressDialog(context, view, actionType, model);
     }
 
     /**
@@ -133,7 +136,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * @param response   network response
      */
     protected void onResponseSuccess(Context context, View view, String actionType, M oldModel, RM response) {
-        hideProgressDialog();
+        if (mShowProgressEnabled) hideProgressDialog();
         notifyOnActionFired(view, actionType, oldModel);
     }
 
@@ -147,15 +150,14 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * @param model      The model which should be handled by the action. Can be null.
      */
     public void showProgressDialog(Context context, View view, String actionType, M model) {
-        if (mShowProgressEnabled) ProgressBarController
-                .showProgressDialog(context, getProgressDialogMessage(context, view, actionType, model));
+        ProgressBarController.showProgressDialog(context, mProgressTag, getProgressDialogMessage(context, view, actionType, model));
     }
 
     /**
      * Call for hide progress dialog
      */
     public void hideProgressDialog() {
-        if (mShowProgressEnabled) ProgressBarController.hideProgressDialog();
+        ProgressBarController.hideProgressDialog(mProgressTag);
     }
 
     /**
@@ -171,7 +173,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * @param e          The Error
      */
     protected void onResponseError(Context context, View view, String actionType, M oldModel, Throwable e) {
-        hideProgressDialog();
+        if (mShowProgressEnabled) hideProgressDialog();
     }
 
     /**

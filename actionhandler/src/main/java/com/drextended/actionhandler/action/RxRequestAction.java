@@ -49,7 +49,7 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
     protected void onMakeRequest(final Context context, final View view, final String actionType, final M model) {
         final Observable<RM> observableRequest = getRequest(context, view, actionType, model);
         if (observableRequest == null) {
-            hideProgressDialog();
+            if (mShowProgressEnabled) hideProgressDialog();
             return;
         }
         unsubscribe(mSubscription);
@@ -136,7 +136,7 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
      * @param oldModel   The model which was used in request.
      */
     protected void onResponseCompleted(Context context, View view, String actionType, M oldModel) {
-        hideProgressDialog();
+        if (mShowProgressEnabled) hideProgressDialog();
         notifyOnActionFired(view, actionType, oldModel);
     }
 
