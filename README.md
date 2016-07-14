@@ -95,7 +95,7 @@ public class Application extends android.app.Application {
 ```
 or
 ```
-// Somewhere befor first usage
+// Somewhere before first usage
 ProgressBarController.init((Application) getApplicationContext());
 ```
 
