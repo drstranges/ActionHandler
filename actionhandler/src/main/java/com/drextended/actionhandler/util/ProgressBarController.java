@@ -136,6 +136,7 @@ public class ProgressBarController {
      * @param tag the tag to determine specific dialog
      */
     public static void hideProgressDialog(String tag) {
+        if (tag == null) return;
         synchronized (sLock) {
             ProgressDialog dialog = findDialog(tag);
             if (dialog != null) {
