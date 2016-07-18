@@ -46,7 +46,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
     public RequestAction(boolean showProgressEnabled, boolean showDialogEnabled) {
         mShowProgressEnabled = showProgressEnabled;
         mShowDialogEnabled = showDialogEnabled;
-        if (mShowDialogEnabled) mProgressTag = getClass().getSimpleName();
+        if (mShowProgressEnabled) mProgressTag = getClass().getSimpleName();
     }
 
     /**
@@ -56,7 +56,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      */
     public void setShowProgressEnabled(boolean showProgressEnabled) {
         mShowProgressEnabled = showProgressEnabled;
-        if (mProgressTag == null && mShowDialogEnabled) mProgressTag = getClass().getSimpleName();
+        if (mProgressTag == null && mShowProgressEnabled) mProgressTag = getClass().getSimpleName();
     }
 
     /**
