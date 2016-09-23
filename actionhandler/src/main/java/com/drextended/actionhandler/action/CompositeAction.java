@@ -109,7 +109,7 @@ public class CompositeAction<M> extends BaseAction<M> {
      * Specific type of action which can contain a few other actions, show them as menu items,
      * and fire an action, if corresponding item clicked.
      *
-     * @param titleProvider provider for corresponding menu item's title
+     * @param titleProvider provider for corresponding menu title
      * @param actions       action item, which contains menu item titles and actions,
      *                      which will be fired if corresponding menu item selected
      */
@@ -257,7 +257,8 @@ public class CompositeAction<M> extends BaseAction<M> {
         int count = menuItems.size();
         for (int index = 0; index < count; index++) {
             final ActionItem item = menuItems.get(index);
-            menu.add(0, index, 0, item.menuTitleResId);
+            //noinspection unchecked
+            menu.add(0, index, 0, item.titleProvider.getTitle(context, model));
         }
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
@@ -290,7 +291,8 @@ public class CompositeAction<M> extends BaseAction<M> {
 
         for (int index = 0; index < count; index++) {
             final ActionItem item = menuItems.get(index);
-            itemLabels[index] = context.getString(item.menuTitleResId);
+            //noinspection unchecked
+            itemLabels[index] = item.titleProvider.getTitle(context, model);
         }
         builder.setItems(itemLabels, new DialogInterface.OnClickListener() {
             @Override
@@ -306,11 +308,11 @@ public class CompositeAction<M> extends BaseAction<M> {
     /**
      * Action item
      */
-    public static class ActionItem {
+    public static class ActionItem<M> {
         /**
          * Resource id for the title associated with this item.
          */
-        public final int menuTitleResId;
+        public final TitleProvider<M> titleProvider;
         /**
          * Action type associated with this item.
          */
@@ -323,12 +325,21 @@ public class CompositeAction<M> extends BaseAction<M> {
         /**
          * @param actionType     The action type associated with this item.
          * @param action         The action associated with this item.
-         * @param menuTitleResId The resource id for the title associated with this item.
+         * @param menuItemTitleResId The resource id for the title associated with this item.
          */
-        public ActionItem(String actionType, Action action, @StringRes int menuTitleResId) {
+        public ActionItem(String actionType, Action action, @StringRes int menuItemTitleResId) {
+            this(actionType, action, new SimpleTitleProvider<M>(menuItemTitleResId));
+        }
+
+        /**
+         * @param actionType     The action type associated with this item.
+         * @param action         The action associated with this item.
+         * @param titleProvider  provider for corresponding menu item's title
+         */
+        public ActionItem(String actionType, Action action, TitleProvider<M> titleProvider) {
             this.actionType = actionType;
             this.action = action;
-            this.menuTitleResId = menuTitleResId;
+            this.titleProvider = titleProvider;
         }
     }
 

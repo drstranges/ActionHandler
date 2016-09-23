@@ -49,10 +49,10 @@ public class Converters {
      * @param model               The model which will be handled
      */
     @BindingAdapter(
-            value = {"actionHandler", "actionType", "actionTypeLongClick", "model"},
+            value = {"actionHandler", "actionType", "actionTypeLongClick", "model", "modelLongClick"},
             requireAll = false
     )
-    public static void setActionHandler(final View view, final ActionClickListener actionHandler, final String actionType, final String actionTypeLongClick, final Object model) {
+    public static void setActionHandler(final View view, final ActionClickListener actionHandler, final String actionType, final String actionTypeLongClick, final Object model, final Object modelLongClick) {
         if (actionHandler != null) {
             if (actionType != null) {
                 view.setOnClickListener(new View.OnClickListener() {
@@ -65,7 +65,7 @@ public class Converters {
             if (actionTypeLongClick != null) {
                 view.setOnLongClickListener(new View.OnLongClickListener() {
                     public boolean onLongClick(View v) {
-                        actionHandler.onActionClick(view, actionTypeLongClick, model);
+                        actionHandler.onActionClick(view, actionTypeLongClick, modelLongClick != null ? modelLongClick : model);
                         return true;
                     }
                 });

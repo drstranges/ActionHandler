@@ -77,7 +77,13 @@ public class MainActivityViewModel extends BaseViewModel implements OnActionFire
                                 return "Title (" + model + ")";
                             }
                         },
-                                new ActionItem(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), R.string.fire_intent_action),
+                                new ActionItem<String>(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), new CompositeAction.TitleProvider<String>() {
+                                    @Override
+                                    public String getTitle(Context context, String model) {
+                                        // There you can return any title for menu item using some fields from model
+                                        return context.getString(R.string.fire_intent_action);
+                                    }
+                                }),
                                 new ActionItem(ActionType.FIRE_ACTION, new ShowToastAction(), R.string.fire_simple_action),
                                 new ActionItem(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()), R.string.fire_dialog_action),
                                 new ActionItem(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction(), R.string.fire_request_action),
