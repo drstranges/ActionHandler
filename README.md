@@ -75,8 +75,10 @@ with Data Binding
         app:actionHandler="@{actionHandler}"
         app:actionType="@{ActionType.SHOW_PROFILE}"
         app:actionTypeLongClick="@{ActionType.MENU}"
-        app:model="@{user}">
-
+        app:model="@{user}"
+        app:modelLongClick="@{user}">
+        <!-- modelLongClick is optional, will be used model if null -->
+        
         <!-- Other Views -->
     </FrameLayout>
 
