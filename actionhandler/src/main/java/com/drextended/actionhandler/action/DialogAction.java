@@ -16,6 +16,7 @@
 
 package com.drextended.actionhandler.action;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.support.annotation.Nullable;
@@ -35,6 +36,28 @@ public abstract class DialogAction<M> extends BaseAction<M> {
 
     @Override
     public void onFireAction(final Context context, @Nullable final View view, final String actionType, @Nullable final M model) {
+        final Dialog dialog = createDialog(context, view, actionType, model);
+        dialog.show();
+    }
+
+    /**
+     * Creates dialog for showing before call {@link #onDialogActionFire}.
+     * By default contains:
+     * - title, obtained by {@link #getDialogTitle(Context, String, Object)},
+     * - message, obtained by {@link #getDialogMessage(Context, String, Object)},
+     * - negative button with label, obtained by {@link #getNegativeButtonTitleResId()},
+     *   which refuse action by click,
+     * - positive button with label, obtained by {@link #getPositiveButtonTitleResId()},
+     *   which call {@link #onDialogActionFire} by click
+     *
+     * @param context       The Context, which generally get from view by {@link View#getContext()}
+     * @param view          The view, which can be used for prepare any visual effect (like animation),
+     *                      Generally it is that view which was clicked and initiated action to fire
+     * @param actionType    Type of the action which was executed. Can be null.
+     * @param model         The model which should be handled by the action. Can be null.
+     * @return the dialog to show before call {@link #onDialogActionFire}.
+     */
+    protected Dialog createDialog(final Context context, @Nullable final View view, final String actionType, @Nullable final M model) {
         final String title = getDialogTitle(context, actionType, model);
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         if (title != null) builder.setTitle(title);
@@ -46,7 +69,7 @@ public abstract class DialogAction<M> extends BaseAction<M> {
                         onDialogActionFire(context, view, actionType, model);
                     }
                 });
-        builder.show();
+        return builder.create();
     }
 
     /**
