@@ -186,7 +186,7 @@ public class CompositeAction<M> extends BaseAction<M> {
         if (!mDisplayDialogForSingleAction && getAcceptedActionCount(model) == 1) {
             final ActionItem actionItem = getFirstAcceptedActionItem(model);
             if (actionItem != null) //noinspection unchecked
-                actionItem.action.onFireAction(context, view, actionType, model);
+                actionItem.action.onFireAction(context, view, actionItem.actionType, model);
         } else {
             showMenu(context, view, model);
         }
