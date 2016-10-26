@@ -1,7 +1,7 @@
 # ActionHandler
 
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-ActionHandler-green.svg?style=true)](https://android-arsenal.com/details/1/3841)
-[![Release](https://img.shields.io/badge/jcenter-0.1.17-blue.svg)](https://bintray.com/drstranges/android-extended/action-handler)
+[![Download](https://api.bintray.com/packages/drstranges/android-extended/action-handler/images/download.svg)](https://bintray.com/drstranges/android-extended/action-handler/_latestVersion)
 
 ## Overview
 
@@ -15,7 +15,7 @@ repositories {
     jcenter()
 }
 dependencies {
-    compile 'com.drextended.actionhandler:actionhandler:0.1.20'
+    compile 'com.drextended.actionhandler:actionhandler:0.1.18'
 }
 ```
 
