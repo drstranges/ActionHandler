@@ -29,6 +29,7 @@ import com.drextended.actionhandler.action.CompositeAction;
 import com.drextended.actionhandler.action.CompositeAction.ActionItem;
 import com.drextended.actionhandler.action.DialogAction;
 import com.drextended.actionhandler.listener.ActionInterceptor;
+import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
 import com.drextended.actionhandlersample.ActionType;
 import com.drextended.actionhandlersample.R;
@@ -38,7 +39,7 @@ import com.drextended.actionhandlersample.action.ShowToastAction;
 import com.drextended.actionhandlersample.action.SimpleAnimationAction;
 import com.drextended.actionhandlersample.action.TrackAction;
 
-public class MainActivity extends AppCompatActivity implements OnActionFiredListener, ActionInterceptor {
+public class MainActivity extends AppCompatActivity implements OnActionFiredListener, ActionInterceptor, OnActionErrorListener {
 
     private static final String EXTRA_LAST_ACTION_TEXT = "EXTRA_LAST_ACTION_TEXT";
 
@@ -71,7 +72,8 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
                                 new ActionItem(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction(), R.string.fire_request_action)
                         ))
                 .setActionInterceptor(this)
-                .setActionFiredListener(this)
+                .addActionFiredListener(this)
+                .addActionErrorListener(this)
                 .build();
 
         initView();
@@ -154,6 +156,11 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
                 setLastActionText("Request Action");
                 break;
         }
+    }
+
+    @Override
+    public void onActionError(Throwable throwable, View view, String actionType, Object model) {
+        Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
     }
 
     private void setLastActionText(String label) {

@@ -83,7 +83,7 @@ public abstract class IntentAction<M> extends BaseAction<M> {
             notifyOnActionFired(view, actionType, model);
         } catch (Exception e) {
             e.printStackTrace();
-            onError(e);
+            onError(e, view, actionType, model);
         }
     }
 
@@ -92,9 +92,14 @@ public abstract class IntentAction<M> extends BaseAction<M> {
      * {@link #stopService(Context, Intent)}
      * Generally can be {@link ActivityNotFoundException} or {@link SecurityException}
      *
-     * @param e The exception, which was occurred while {@link #onFireAction(Context, View, String, Object)}
+     * @param throwable  The exception, which was occurred while {@link #onFireAction(Context, View, String, Object)}
+     * @param view       The view, which can be used for prepare any visual effect (like animation),
+     *                   Generally it is that view which was clicked and initiated action to fire
+     * @param actionType Type of the action which was executed. Can be null.
+     * @param model      The model which should be handled by the action. Can be null.
      */
-    protected void onError(Exception e) {
+    protected void onError(Exception throwable, View view, String actionType, M model) {
+        notifyOnActionError(throwable, view, actionType, model);
     }
 
     /**

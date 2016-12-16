@@ -24,22 +24,32 @@ import com.drextended.actionhandler.action.BaseAction;
 import com.drextended.actionhandler.action.Cancelable;
 import com.drextended.actionhandler.listener.ActionClickListener;
 import com.drextended.actionhandler.listener.ActionInterceptor;
+import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Use ActionHandler to manage action and bind them to view
  */
-public class ActionHandler implements ActionClickListener {
+public class ActionHandler implements ActionClickListener, OnActionFiredListener, OnActionErrorListener {
 
     // Actions which was added to the handler
     protected final List<ActionPair> mActions;
 
     // Callback to be invoked when an action is executed successfully
+    @Deprecated
     protected OnActionFiredListener mOnActionFiredListener;
+
+    // Callbacks to be invoked when an action is executed successfully
+    protected Set<OnActionFiredListener> mOnActionFiredListeners;
+
+    // Callbacks to be invoked when an action is executed with error
+    protected Set<OnActionErrorListener> mOnActionErrorListeners;
 
     // Callback to be invoked after a view with an action is clicked and before action handling started.
     // Can intercept an action to prevent it to be fired
@@ -50,6 +60,14 @@ public class ActionHandler implements ActionClickListener {
      */
     protected ActionHandler(List<ActionPair> actions) {
         mActions = actions != null ? actions : Collections.<ActionPair>emptyList();
+
+        for (ActionPair actionPair : mActions) {
+            if (actionPair.action instanceof BaseAction) {
+                BaseAction baseAction = ((BaseAction) actionPair.action);
+                baseAction.addActionFiredListener(this);
+                baseAction.addActionErrorListener(this);
+            }
+        }
     }
 
     /**
@@ -58,17 +76,84 @@ public class ActionHandler implements ActionClickListener {
      * You should call {@link BaseAction#notifyOnActionFired(View, String, Object)} to invoke this callback.
      *
      * @param actionFiredListener new callback to be invoked when an action is executed successfully
+     *
+     * @deprecated Use {@link #addActionFiredListener(OnActionFiredListener)} instead
      */
+    @Deprecated
     public void setOnActionFiredListener(OnActionFiredListener actionFiredListener) {
-        OnActionFiredListener oldListener = null;
-        if (mOnActionFiredListener != null) oldListener = mOnActionFiredListener;
+        removeActionFiredListener(mOnActionFiredListener);
         mOnActionFiredListener = actionFiredListener;
-        for (ActionPair actionPair : mActions) {
-            if (actionPair.action instanceof BaseAction) {
-                BaseAction baseAction = ((BaseAction) actionPair.action);
-                baseAction.removeActionFireListener(oldListener);
-                baseAction.addActionFiredListener(mOnActionFiredListener);
-            }
+        addActionFiredListener(actionFiredListener);
+    }
+
+    /**
+     * Add new callback to be invoked when an action is executed successfully
+     * Note: It is called only for BaseActions.
+     * You should call {@link BaseAction#notifyOnActionFired(View, String, Object)} to invoke this callback.
+     *
+     * @param actionFiredListener new callback to be invoked when an action is executed successfully
+     */
+    public void addActionFiredListener(OnActionFiredListener actionFiredListener) {
+        if (mOnActionFiredListeners == null) {
+            mOnActionFiredListeners = new HashSet<>(1);
+        }
+        mOnActionFiredListeners.add(actionFiredListener);
+    }
+
+    /**
+     * Remove the callback for fire event
+     *
+     * @param actionFiredListener callback to remove
+     */
+    public void removeActionFiredListener(OnActionFiredListener actionFiredListener) {
+        if (mOnActionFiredListeners != null) {
+            mOnActionFiredListeners.remove(actionFiredListener);
+        }
+        if (mOnActionFiredListener == actionFiredListener) mOnActionFiredListener = null;
+    }
+
+    /**
+     * Remove all callbacks for fire event
+     */
+    public void removeAllActionFiredListeners() {
+        if (mOnActionFiredListeners != null) {
+            mOnActionFiredListeners.clear();
+        }
+        mOnActionFiredListener = null;
+    }
+
+    /**
+     * Add new callback to be invoked when an action is executed with error
+     * You should call {@link BaseAction#notifyOnActionError(Throwable, View, String, Object)} to invoke this callback.
+     *
+     * @param actionErrorListener new callback to be invoked when an action is executed with error
+     */
+    public void addActionErrorListener(OnActionErrorListener actionErrorListener) {
+        if (mOnActionErrorListeners == null) {
+            mOnActionErrorListeners = new HashSet<>(1);
+        }
+        mOnActionErrorListeners.add(actionErrorListener);
+    }
+
+    /**
+     * Remove the callback for error event
+     * You should call {@link BaseAction#notifyOnActionError(Throwable, View, String, Object)} to invoke this callback.
+     *
+     * @param actionErrorListener callback to remove
+     */
+    public void removeActionErrorListener(OnActionErrorListener actionErrorListener) {
+        if (mOnActionErrorListeners != null) {
+            mOnActionErrorListeners.remove(actionErrorListener);
+        }
+    }
+
+    /**
+     * Remove all callbacks for error event
+     * You should call {@link BaseAction#notifyOnActionError(Throwable, View, String, Object)} to invoke this callback.
+     */
+    public void removeAllActionErrorListeners() {
+        if (mOnActionErrorListeners != null) {
+            mOnActionErrorListeners.clear();
         }
     }
 
@@ -80,6 +165,24 @@ public class ActionHandler implements ActionClickListener {
      */
     public void setActionInterceptor(ActionInterceptor actionInterceptor) {
         mActionInterceptor = actionInterceptor;
+    }
+
+    @Override
+    public void onActionFired(View view, String actionType, Object model) {
+        if (mOnActionFiredListeners != null) {
+            for (final OnActionFiredListener listener : mOnActionFiredListeners) {
+                listener.onActionFired(view, actionType, model);
+            }
+        }
+    }
+
+    @Override
+    public void onActionError(Throwable throwable, View view, String actionType, Object model) {
+        if (mOnActionErrorListeners != null) {
+            for (final OnActionErrorListener listener : mOnActionErrorListeners) {
+                listener.onActionError(throwable, view, actionType, model);
+            }
+        }
     }
 
     /**
@@ -160,7 +263,8 @@ public class ActionHandler implements ActionClickListener {
      */
     public static final class Builder {
         private List<ActionPair> mActions;
-        private OnActionFiredListener mActionFiredListener;
+        private Set<OnActionFiredListener> mActionFiredListeners;
+        private Set<OnActionErrorListener> mActionErrorListeners;
         private ActionInterceptor mActionInterceptor;
 
         public Builder() {
@@ -185,9 +289,41 @@ public class ActionHandler implements ActionClickListener {
          * You should call {@link BaseAction#notifyOnActionFired(View, String, Object)} to invoke this callback.
          *
          * @param actionFiredListener new callback to be invoked when an action is executed successfully
+         * @deprecated use {@link #addActionFiredListener(OnActionFiredListener)} instead
          */
+        @Deprecated
         public Builder setActionFiredListener(final OnActionFiredListener actionFiredListener) {
-            mActionFiredListener = actionFiredListener;
+            addActionFiredListener(actionFiredListener);
+            return this;
+        }
+
+        /**
+         * Add new callback to be invoked when an action is executed successfully
+         * Note: It is called only for BaseActions.
+         * You should call {@link BaseAction#notifyOnActionFired(View, String, Object)} to invoke this callback.
+         *
+         * @param actionFiredListener new callback to be invoked when an action is executed successfully
+         */
+        public Builder addActionFiredListener(final OnActionFiredListener actionFiredListener) {
+            if (mActionFiredListeners == null) {
+                mActionFiredListeners = new HashSet<>(1);
+            }
+            mActionFiredListeners.add(actionFiredListener);
+            return this;
+        }
+
+        /**
+         * Add new callback to be invoked when an action is executed with error
+         * Note: It is called only for BaseActions.
+         * You should call {@link BaseAction#notifyOnActionError(Throwable, View, String, Object)} to invoke this callback.
+         *
+         * @param actionErrorListener new callback to be invoked when an action is executed successfully
+         */
+        public Builder addActionErrorListener(final OnActionErrorListener actionErrorListener) {
+            if (mActionErrorListeners == null) {
+                mActionErrorListeners = new HashSet<>(1);
+            }
+            mActionErrorListeners.add(actionErrorListener);
             return this;
         }
 
@@ -204,11 +340,14 @@ public class ActionHandler implements ActionClickListener {
 
         public ActionHandler build() {
             final ActionHandler actionHandler = new ActionHandler(mActions);
-            if (mActionFiredListener != null) {
-                actionHandler.setOnActionFiredListener(mActionFiredListener);
+            if (mActionFiredListeners != null) {
+                actionHandler.mOnActionFiredListeners = mActionFiredListeners;
+            }
+            if (mActionErrorListeners != null) {
+                actionHandler.mOnActionErrorListeners = mActionErrorListeners;
             }
             if (mActionInterceptor != null) {
-                actionHandler.setActionInterceptor(mActionInterceptor);
+                actionHandler.mActionInterceptor = mActionInterceptor;
             }
             return actionHandler;
         }

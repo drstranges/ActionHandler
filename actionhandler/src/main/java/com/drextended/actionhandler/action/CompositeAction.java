@@ -28,6 +28,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 
+import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
 
 import java.security.InvalidParameterException;
@@ -42,7 +43,7 @@ import java.util.List;
  *
  * @param <M>
  */
-public class CompositeAction<M> extends BaseAction<M> {
+public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredListener, OnActionErrorListener {
 
     /**
      * Actions for show in a menu (dialog or popup window) and fire if is accepted
@@ -92,6 +93,18 @@ public class CompositeAction<M> extends BaseAction<M> {
      * Specific type of action which can contain a few other actions, show them as menu items,
      * and fire an action, if corresponding item clicked.
      *
+     * @param titleProvider provider for corresponding menu title
+     * @param actions       action item, which contains menu item titles and actions,
+     *                      which will be fired if corresponding menu item selected
+     */
+    public CompositeAction(TitleProvider<M> titleProvider, ActionItem... actions) {
+        this(titleProvider, true, actions);
+    }
+
+    /**
+     * Specific type of action which can contain a few other actions, show them as menu items,
+     * and fire an action, if corresponding item clicked.
+     *
      * @param titleProvider                provider for corresponding menu item's title
      * @param actions                      action item, which contains menu item titles and actions,
      *                                     which will be fired if corresponding menu item selected
@@ -103,20 +116,15 @@ public class CompositeAction<M> extends BaseAction<M> {
         mActions = actions;
         mTitleProvider = titleProvider;
         mDisplayDialogForSingleAction = displayDialogForSingleAction;
-    }
 
-    /**
-     * Specific type of action which can contain a few other actions, show them as menu items,
-     * and fire an action, if corresponding item clicked.
-     *
-     * @param titleProvider provider for corresponding menu title
-     * @param actions       action item, which contains menu item titles and actions,
-     *                      which will be fired if corresponding menu item selected
-     */
-    public CompositeAction(TitleProvider<M> titleProvider, ActionItem... actions) {
-        if (actions == null) throw new InvalidParameterException("Provide at least one action");
-        mActions = actions;
-        mTitleProvider = titleProvider;
+        for (ActionItem item : mActions) {
+            if (item.action instanceof BaseAction) {
+                // add listeners to menu actions
+                BaseAction baseAction = (BaseAction) item.action;
+                baseAction.addActionFiredListener(this);
+                baseAction.addActionErrorListener(this);
+            }
+        }
     }
 
     /**
@@ -127,17 +135,6 @@ public class CompositeAction<M> extends BaseAction<M> {
      */
     public void setShowAsPopupMenuEnabled(boolean showAsPopupMenuEnabled) {
         mShowAsPopupMenuEnabled = showAsPopupMenuEnabled;
-    }
-
-    @Override
-    public void addActionFiredListener(OnActionFiredListener listener) {
-        super.addActionFiredListener(listener);
-        for (ActionItem item : mActions) {
-            if (item.action instanceof BaseAction) {
-                // add action fire listener to menu actions
-                ((BaseAction) item.action).addActionFiredListener(listener);
-            }
-        }
     }
 
     /**
@@ -303,6 +300,16 @@ public class CompositeAction<M> extends BaseAction<M> {
             }
         });
         return builder;
+    }
+
+    @Override
+    public void onActionFired(View view, String actionType, Object model) {
+        notifyOnActionFired(view, actionType, model);
+    }
+
+    @Override
+    public void onActionError(Throwable throwable, View view, String actionType, Object model) {
+        notifyOnActionError(throwable, view, actionType, model);
     }
 
     /**

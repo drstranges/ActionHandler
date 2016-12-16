@@ -15,7 +15,7 @@ repositories {
     jcenter()
 }
 dependencies {
-    compile 'com.drextended.actionhandler:actionhandler:0.1.18'
+    compile 'com.drextended.actionhandler:actionhandler:0.1.19'
 }
 ```
 
@@ -49,7 +49,8 @@ dependencies {
                                 new ActionItem(ActionType.FIRE_ACTION, new ShowToastAction(), R.string.menu_item_2),
                         ))
                 .setActionInterceptor(this)
-                .setActionFiredListener(this)
+                .addActionFiredListener(this)
+                .addActionErrorListener(this)
                 .build();
                 
     ...

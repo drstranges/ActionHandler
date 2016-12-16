@@ -174,6 +174,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      */
     protected void onResponseError(Context context, View view, String actionType, M oldModel, Throwable e) {
         if (mShowProgressEnabled) hideProgressDialog();
+        notifyOnActionError(e, view, actionType, oldModel);
     }
 
     /**

@@ -17,10 +17,11 @@ package com.drextended.actionhandler.action;
 
 import android.view.View;
 
+import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Extent from BaseAction all you custom actions.
@@ -33,7 +34,12 @@ public abstract class BaseAction<M> implements Action<M> {
     /**
      * Listeners for action fired events.
      */
-    protected List<OnActionFiredListener> mActionFiredListeners = new ArrayList<>(1);
+    protected Set<OnActionFiredListener> mActionFiredListeners = new HashSet<>(1);
+
+    /**
+     * Listeners for action error events.
+     */
+    protected Set<OnActionErrorListener> mActionErrorListeners = new HashSet<>(1);
 
     /**
      * Add a listener that will be called when method {@link #notifyOnActionFired(View, String, Object)}
@@ -61,6 +67,33 @@ public abstract class BaseAction<M> implements Action<M> {
         mActionFiredListeners.clear();
     }
 
+
+    /**
+     * Add a listener that will be called when method {@link #notifyOnActionError(Throwable, View, String, Object)}
+     * called. Generally if action fired with error.
+     *
+     * @param listener The listener that will be called when action fired with error.
+     */
+    public void addActionErrorListener(OnActionErrorListener listener) {
+        if (listener != null) mActionErrorListeners.add(listener);
+    }
+
+    /**
+     * Remove a listener for action error events.
+     *
+     * @param listener The listener for action error events.
+     */
+    public void removeActionErrorListener(OnActionErrorListener listener) {
+        if (listener != null) mActionErrorListeners.remove(listener);
+    }
+
+    /**
+     * Remove all listeners for action error events.
+     */
+    public void removeAllActionErrorListeners() {
+        mActionErrorListeners.clear();
+    }
+
     /**
      * Notify any registered listeners that the action has been fired.
      *
@@ -72,6 +105,21 @@ public abstract class BaseAction<M> implements Action<M> {
     public void notifyOnActionFired(View view, String actionType, Object model) {
         for (OnActionFiredListener listener : mActionFiredListeners) {
             listener.onActionFired(view, actionType, model);
+        }
+    }
+
+    /**
+     * Notify any registered listeners that the action has been executed with error.
+     *
+     * @param throwable  The error
+     * @param view       The View, which can be used for prepare any visual effect (like animation),
+     *                   Generally it is that view which was clicked and initiated action to fire.
+     * @param actionType type of the action
+     * @param model      model, which was handled
+     */
+    public void notifyOnActionError(Throwable throwable, View view, String actionType, Object model) {
+        for (OnActionErrorListener listener : mActionErrorListeners) {
+            listener.onActionError(throwable, view, actionType, model);
         }
     }
 }
