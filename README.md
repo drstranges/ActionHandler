@@ -15,7 +15,7 @@ repositories {
     jcenter()
 }
 dependencies {
-    compile 'com.drextended.actionhandler:actionhandler:0.1.21'
+    compile 'com.drextended.actionhandler:actionhandler:0.1.22'
 }
 ```
 
@@ -51,6 +51,7 @@ dependencies {
                 .addActionInterceptor(this)
                 .addActionFiredListener(this)
                 .addActionErrorListener(this)
+                .addActionDismissListener(this)
                 .build();
                 
     ...

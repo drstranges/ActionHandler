@@ -68,6 +68,12 @@ public abstract class DialogAction<M> extends BaseAction<M> {
                     public void onClick(DialogInterface dialog, int which) {
                         onDialogActionFire(context, view, actionType, model);
                     }
+                })
+                .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        notifyOnActionDismiss("Dialog dismissed", view, actionType, model);
+                    }
                 });
         return builder.create();
     }

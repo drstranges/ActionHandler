@@ -28,6 +28,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 
+import com.drextended.actionhandler.listener.OnActionDismissListener;
 import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
 
@@ -43,7 +44,7 @@ import java.util.List;
  *
  * @param <M>
  */
-public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredListener, OnActionErrorListener {
+public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredListener, OnActionErrorListener, OnActionDismissListener {
 
     /**
      * Actions for show in a menu (dialog or popup window) and fire if is accepted
@@ -123,6 +124,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
                 BaseAction baseAction = (BaseAction) item.action;
                 baseAction.addActionFiredListener(this);
                 baseAction.addActionErrorListener(this);
+                baseAction.addActionDismissListener(this);
             }
         }
     }
@@ -185,7 +187,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
             if (actionItem != null) //noinspection unchecked
                 actionItem.action.onFireAction(context, view, actionType, model);
         } else {
-            showMenu(context, view, model);
+            showMenu(context, view, actionType, model);
         }
     }
 
@@ -195,22 +197,23 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
      * @param context The Context, which generally get from view by {@link View#getContext()}
      * @param view    The View, which can be used for prepare any visual effect (like animation),
      *                Generally it is that view which was clicked and initiated action to fire.
+     * @param actionType The action type
      * @param model   The model which should be handled by the action.
      */
-    private void showMenu(final Context context, final View view, final M model) {
+    private void showMenu(final Context context, final View view, String actionType, final M model) {
 
         // prepare menu items
         final List<ActionItem> menuItems = prepareMenuListItems(model);
 
         if (mShowAsPopupMenuEnabled) {
             //show as popup menu
-            PopupMenu popupMenu = buildPopupMenu(context, view, model, menuItems);
+            PopupMenu popupMenu = buildPopupMenu(context, view, actionType, model, menuItems);
             popupMenu.show();
 
         } else {
             //show as alert dialog with single choice items
             String title = mTitleProvider.getTitle(context, model);
-            AlertDialog.Builder builder = buildAlertDialog(context, view, model, title, menuItems);
+            AlertDialog.Builder builder = buildAlertDialog(context, view, actionType, model, title, menuItems);
             final AlertDialog dialog = builder.create();
             if (title == null) {
                 dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -244,11 +247,12 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
      * @param context   The Context, which generally get from view by {@link View#getContext()}
      * @param view      The View, which can be used for prepare any visual effect (like animation),
      *                  Generally it is that view which was clicked and initiated action to fire.
+     * @param actionType The action type
      * @param model     The model which should be handled by the action.
      * @param menuItems list of items which will be shown in a menu
      * @return popup menu to show given menu items
      */
-    protected PopupMenu buildPopupMenu(final Context context, final View view, final M model, final List<ActionItem> menuItems) {
+    protected PopupMenu buildPopupMenu(final Context context, final View view, final String actionType, final M model, final List<ActionItem> menuItems) {
         final PopupMenu popupMenu = new PopupMenu(context, view);
         final Menu menu = popupMenu.getMenu();
         int count = menuItems.size();
@@ -266,6 +270,12 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
                 return true;
             }
         });
+        popupMenu.setOnDismissListener(new PopupMenu.OnDismissListener() {
+            @Override
+            public void onDismiss(PopupMenu menu) {
+                notifyOnActionDismiss("CompositeAction menu dismissed", view, actionType, model);
+            }
+        });
         return popupMenu;
     }
 
@@ -275,11 +285,12 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
      * @param context   The Context, which generally get from view by {@link View#getContext()}
      * @param view      The View, which can be used for prepare any visual effect (like animation),
      *                  Generally it is that view which was clicked and initiated action to fire.
+     * @param actionType The action type
      * @param model     The model which should be handled by the action.
      * @param menuItems list of items which will be shown in a menu
      * @return alert dialog builder to show given menu items
      */
-    protected AlertDialog.Builder buildAlertDialog(final Context context, final View view, final M model, String title, final List<ActionItem> menuItems) {
+    protected AlertDialog.Builder buildAlertDialog(final Context context, final View view, final String actionType, final M model, String title, final List<ActionItem> menuItems) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context)
                 .setTitle(title);
 
@@ -298,6 +309,11 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
                 //noinspection unchecked
                 actionItem.action.onFireAction(context, view, actionItem.actionType, model);
             }
+        }).setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                notifyOnActionDismiss("CompositeAction menu dismissed", view, actionType, model);
+            }
         });
         return builder;
     }
@@ -310,6 +326,11 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
     @Override
     public void onActionError(Throwable throwable, View view, String actionType, Object model) {
         notifyOnActionError(throwable, view, actionType, model);
+    }
+
+    @Override
+    public void onActionDismiss(String reason, View view, String actionType, Object model) {
+        notifyOnActionDismiss(reason, view, actionType, model);
     }
 
     /**

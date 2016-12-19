@@ -24,6 +24,7 @@ import com.drextended.actionhandler.action.BaseAction;
 import com.drextended.actionhandler.action.Cancelable;
 import com.drextended.actionhandler.listener.ActionClickListener;
 import com.drextended.actionhandler.listener.ActionInterceptor;
+import com.drextended.actionhandler.listener.OnActionDismissListener;
 import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
 
@@ -36,7 +37,7 @@ import java.util.Set;
 /**
  * Use ActionHandler to manage action and bind them to view
  */
-public class ActionHandler implements ActionClickListener, OnActionFiredListener, OnActionErrorListener {
+public class ActionHandler implements ActionClickListener, OnActionFiredListener, OnActionErrorListener, OnActionDismissListener {
 
     // Actions which was added to the handler
     protected final List<ActionPair> mActions;
@@ -46,6 +47,9 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
 
     // Callbacks to be invoked when an action is executed with error
     protected Set<OnActionErrorListener> mOnActionErrorListeners;
+
+    // Callbacks to be invoked when an action is executed but dismissed
+    protected Set<OnActionDismissListener> mOnActionDismissListeners;
 
     // Callback to be invoked after a view with an action is clicked and before action handling started.
     // Can intercept an action to prevent it to be fired
@@ -62,6 +66,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
                 BaseAction baseAction = ((BaseAction) actionPair.action);
                 baseAction.addActionFiredListener(this);
                 baseAction.addActionErrorListener(this);
+                baseAction.addActionDismissListener(this);
             }
         }
     }
@@ -135,7 +140,6 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
 
     /**
      * Remove the callback for error event
-     * You should call {@link BaseAction#notifyOnActionError(Throwable, View, String, Object)} to invoke this callback.
      *
      * @param actionErrorListener callback to remove
      */
@@ -147,12 +151,54 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
 
     /**
      * Remove all callbacks for error event
-     * You should call {@link BaseAction#notifyOnActionError(Throwable, View, String, Object)} to invoke this callback.
      */
     public void removeAllActionErrorListeners() {
         if (mOnActionErrorListeners != null) {
             mOnActionErrorListeners.clear();
         }
+    }
+
+    /**
+     * Add new callback to be invoked when an action is executed but dismissed
+     * You should call {@link BaseAction#notifyOnActionDismiss(String, View, String, Object)} to invoke this callback.
+     *
+     * @param listener new callback to be invoked when an action is executed with error
+     */
+    public void addActionDismissListener(OnActionDismissListener listener) {
+        if (mOnActionDismissListeners == null) {
+            mOnActionDismissListeners = new HashSet<>(1);
+        }
+        mOnActionDismissListeners.add(listener);
+    }
+
+    /**
+     * Remove the callback for dismiss event
+     *
+     * @param listener callback to remove
+     */
+    public void removeActionDismissListener(OnActionDismissListener listener) {
+        if (mOnActionDismissListeners != null) {
+            mOnActionDismissListeners.remove(listener);
+        }
+    }
+
+    /**
+     * Remove all callbacks for dismiss event
+     */
+    public void removeAllActionDismissListeners() {
+        if (mOnActionDismissListeners != null) {
+            mOnActionDismissListeners.clear();
+        }
+    }
+
+    /**
+     * Remove all callbacks for action intercept, fire, error and dismiss events
+     */
+    public void removeAllActionListeners() {
+        removeAllActionFiredListeners();
+        removeAllActionDismissListeners();
+        removeAllActionInterceptors();
+        removeAllActionErrorListeners();
     }
 
     /**
@@ -219,6 +265,15 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
         if (mOnActionErrorListeners != null) {
             for (final OnActionErrorListener listener : mOnActionErrorListeners) {
                 listener.onActionError(throwable, view, actionType, model);
+            }
+        }
+    }
+
+    @Override
+    public void onActionDismiss(String reason, View view, String actionType, Object model) {
+        if (mOnActionDismissListeners != null) {
+            for (final OnActionDismissListener listener : mOnActionDismissListeners) {
+                listener.onActionDismiss(reason, view, actionType, model);
             }
         }
     }
@@ -306,6 +361,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
         private List<ActionPair> mActions;
         private Set<OnActionFiredListener> mActionFiredListeners;
         private Set<OnActionErrorListener> mActionErrorListeners;
+        private Set<OnActionDismissListener> mActionDismissListeners;
         private List<ActionInterceptor> mActionInterceptors;
 
         public Builder() {
@@ -369,6 +425,21 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
         }
 
         /**
+         * Add new callback to be invoked when an action is executed but dismissed
+         * Note: It is called only for BaseActions.
+         * You should call {@link BaseAction#notifyOnActionDismiss(String, View, String, Object)} to invoke this callback.
+         *
+         * @param listener new callback to be invoked when an action was dismissed
+         */
+        public Builder addActionDismissListener(final OnActionDismissListener listener) {
+            if (mActionDismissListeners == null) {
+                mActionDismissListeners = new HashSet<>(1);
+            }
+            mActionDismissListeners.add(listener);
+            return this;
+        }
+
+        /**
          * Set callback to be invoked after a view with an action is clicked and before action handling started.
          * Can intercept an action to prevent it to be fired
          *
@@ -401,6 +472,9 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
             }
             if (mActionErrorListeners != null) {
                 actionHandler.mOnActionErrorListeners = mActionErrorListeners;
+            }
+            if (mActionDismissListeners != null) {
+                actionHandler.mOnActionDismissListeners = mActionDismissListeners;
             }
             if (mActionInterceptors != null && mActionInterceptors.size() > 0) {
                 actionHandler.mActionInterceptors = mActionInterceptors;

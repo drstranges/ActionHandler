@@ -17,6 +17,7 @@ package com.drextended.actionhandler.action;
 
 import android.view.View;
 
+import com.drextended.actionhandler.listener.OnActionDismissListener;
 import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
 
@@ -40,6 +41,11 @@ public abstract class BaseAction<M> implements Action<M> {
      * Listeners for action error events.
      */
     protected Set<OnActionErrorListener> mActionErrorListeners = new HashSet<>(1);
+
+    /**
+     * Listeners for action dismiss events.
+     */
+    protected Set<OnActionDismissListener> mActionDismissListeners = new HashSet<>(1);
 
     /**
      * Add a listener that will be called when method {@link #notifyOnActionFired(View, String, Object)}
@@ -95,6 +101,42 @@ public abstract class BaseAction<M> implements Action<M> {
     }
 
     /**
+     * Add a listener that will be called when method {@link #notifyOnActionDismiss(String, View, String, Object)}
+     * called. Generally if action was dismissed by user.
+     *
+     * @param listener The listener that will be called when action dismissed.
+     */
+    public void addActionDismissListener(OnActionDismissListener listener) {
+        if (listener != null) mActionDismissListeners.add(listener);
+    }
+
+    /**
+     * Remove a listener for action dismiss events.
+     *
+     * @param listener The listener for action dismiss events.
+     */
+    public void removeActionDismissListener(OnActionDismissListener listener) {
+        if (listener != null) mActionDismissListeners.remove(listener);
+    }
+
+    /**
+     * Remove all listeners for action dismiss events.
+     */
+    public void removeAllActionDismissListeners() {
+        mActionDismissListeners.clear();
+    }
+
+    /**
+     * Remove all listeners for action fire, error and dismiss events.
+     */
+    public void removeAllActionListeners() {
+        mActionFiredListeners.clear();
+        mActionErrorListeners.clear();
+        mActionDismissListeners.clear();
+    }
+
+
+    /**
      * Notify any registered listeners that the action has been fired.
      *
      * @param view       The View, which can be used for prepare any visual effect (like animation),
@@ -120,6 +162,21 @@ public abstract class BaseAction<M> implements Action<M> {
     public void notifyOnActionError(Throwable throwable, View view, String actionType, Object model) {
         for (OnActionErrorListener listener : mActionErrorListeners) {
             listener.onActionError(throwable, view, actionType, model);
+        }
+    }
+
+    /**
+     * Notify any registered listeners that the action has been executed with error.
+     *
+     * @param reason     The reason to dismiss
+     * @param view       The View, which can be used for prepare any visual effect (like animation),
+     *                   Generally it is that view which was clicked and initiated action to fire.
+     * @param actionType type of the action
+     * @param model      model, which was handled
+     */
+    public void notifyOnActionDismiss(String reason, View view, String actionType, Object model) {
+        for (OnActionDismissListener listener : mActionDismissListeners) {
+            listener.onActionDismiss(reason, view, actionType, model);
         }
     }
 }
