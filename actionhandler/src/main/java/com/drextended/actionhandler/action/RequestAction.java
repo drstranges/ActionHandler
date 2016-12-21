@@ -73,7 +73,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
         if (mShowDialogEnabled) {
             super.onFireAction(context, view, actionType, model);
         } else {
-            makeRequest(context, view, actionType, model);
+            makeRequest(context, view, actionType, model, null);
         }
     }
 
@@ -235,6 +235,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * @param actionType Type of the action which was executed.
      * @param model      The model which was used in request.
      */
-    protected abstract void onMakeRequest(Context context, View view, String actionType, final M model, @Nullable Object payload);
+    protected void onMakeRequest(Context context, View view, String actionType, final M model, @Nullable Object payload){
+    }
 
 }

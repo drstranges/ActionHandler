@@ -46,8 +46,8 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
     }
 
     @Override
-    protected void onMakeRequest(final Context context, final View view, final String actionType, final M model) {
-        final Observable<RM> observableRequest = getRequest(context, view, actionType, model);
+    protected void onMakeRequest(final Context context, final View view, final String actionType, final M model, Object payload) {
+        final Observable<RM> observableRequest = getRequest(context, view, actionType, model, payload);
         if (observableRequest == null) {
             if (mShowProgressEnabled) hideProgressDialog();
             return;
@@ -121,9 +121,31 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
      * @param actionType Type of the action which was executed.
      * @param model      The model which was used in request.
      * @return request observable.
+     * @deprecated use {@link #getRequest(Context, View, String, Object, Object)}
+     */
+    @Deprecated
+    @Nullable
+    protected Observable<RM> getRequest(Context context, View view, String actionType, M model) {
+        return getRequest(context, view, actionType, model, null);
+    }
+
+    /**
+     * Implement network request observable there.
+     * By default {@code Schedulers.io()} applied for subscribeOn,
+     * and {@code AndroidSchedulers.mainThread()} for observeOn. If you want to apply custom schedulers
+     * override {@link #applySchedulers()}
+     *
+     * @param context    The Context, which generally get from view by {@link View#getContext()}
+     * @param view       The view, which can be used for prepare any visual effect (like animation),
+     *                   Generally it is that view which was clicked and initiated action to fire
+     * @param actionType Type of the action which was executed.
+     * @param model      The model which was used in request.
+     * @return request observable.
      */
     @Nullable
-    protected abstract Observable<RM> getRequest(Context context, View view, String actionType, M model);
+    protected Observable<RM> getRequest(Context context, View view, String actionType, M model, @Nullable Object payload) {
+        return null;
+    }
 
     /**
      * Called when request observable emits "onComplete" event.

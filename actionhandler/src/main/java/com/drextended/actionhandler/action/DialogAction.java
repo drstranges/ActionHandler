@@ -195,7 +195,7 @@ public abstract class DialogAction<M> extends BaseAction<M> {
         }
 
         @Override
-        protected void onDialogActionFire(Context context, View view, String actionType, M model) {
+        protected void onDialogActionFire(Context context, View view, String actionType, M model, Object payload) {
             if (mAction != null) mAction.onFireAction(context, view, actionType, model);
         }
 

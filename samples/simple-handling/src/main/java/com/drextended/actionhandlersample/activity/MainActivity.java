@@ -29,6 +29,7 @@ import com.drextended.actionhandler.action.CompositeAction;
 import com.drextended.actionhandler.action.CompositeAction.ActionItem;
 import com.drextended.actionhandler.action.DialogAction;
 import com.drextended.actionhandler.listener.ActionInterceptor;
+import com.drextended.actionhandler.listener.OnActionDismissListener;
 import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
 import com.drextended.actionhandlersample.ActionType;
@@ -39,7 +40,7 @@ import com.drextended.actionhandlersample.action.ShowToastAction;
 import com.drextended.actionhandlersample.action.SimpleAnimationAction;
 import com.drextended.actionhandlersample.action.TrackAction;
 
-public class MainActivity extends AppCompatActivity implements OnActionFiredListener, ActionInterceptor, OnActionErrorListener {
+public class MainActivity extends AppCompatActivity implements OnActionFiredListener, ActionInterceptor, OnActionErrorListener, OnActionDismissListener {
 
     private static final String EXTRA_LAST_ACTION_TEXT = "EXTRA_LAST_ACTION_TEXT";
 
@@ -71,9 +72,10 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
                                 new ActionItem(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()), R.string.fire_dialog_action),
                                 new ActionItem(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction(), R.string.fire_request_action)
                         ))
-                .setActionInterceptor(this)
+                .addActionInterceptor(this)
                 .addActionFiredListener(this)
                 .addActionErrorListener(this)
+                .addActionDismissListener(this)
                 .build();
 
         initView();
@@ -161,6 +163,11 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
     @Override
     public void onActionError(Throwable throwable, View view, String actionType, Object model) {
         Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onActionDismiss(String reason, View view, String actionType, Object model) {
+        Toast.makeText(getApplicationContext(), "Action dismissed. Reason: " + reason, Toast.LENGTH_SHORT).show();
     }
 
     private void setLastActionText(String label) {

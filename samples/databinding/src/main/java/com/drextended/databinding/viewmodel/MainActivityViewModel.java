@@ -26,6 +26,8 @@ import com.drextended.actionhandler.action.CompositeAction;
 import com.drextended.actionhandler.action.CompositeAction.ActionItem;
 import com.drextended.actionhandler.action.DialogAction;
 import com.drextended.actionhandler.listener.ActionInterceptor;
+import com.drextended.actionhandler.listener.OnActionDismissListener;
+import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
 import com.drextended.databinding.ActionType;
 import com.drextended.databinding.R;
@@ -40,7 +42,7 @@ import com.drextended.databinding.action.TrackAction;
  * Created on 15.06.2016.
  */
 
-public class MainActivityViewModel extends BaseViewModel implements OnActionFiredListener, ActionInterceptor {
+public class MainActivityViewModel extends BaseViewModel implements OnActionFiredListener, ActionInterceptor, OnActionErrorListener, OnActionDismissListener {
 
     private static final String EXTRA_LAST_ACTION_TEXT = "EXTRA_LAST_ACTION_TEXT";
 
@@ -89,8 +91,10 @@ public class MainActivityViewModel extends BaseViewModel implements OnActionFire
                                 new ActionItem(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction(), R.string.fire_request_action),
                                 new ActionItem(ActionType.FIRE_RX_REQUEST_ACTION, new SampleRxRequestAction(), R.string.fire_rx_request_action)
                         ))
-                .setActionInterceptor(this)
-                .setActionFiredListener(this)
+                .addActionInterceptor(this)
+                .addActionFiredListener(this)
+                .addActionErrorListener(this)
+                .addActionDismissListener(this)
                 .build();
     }
 
@@ -126,6 +130,16 @@ public class MainActivityViewModel extends BaseViewModel implements OnActionFire
                 lastActionText.set("Request Action");
                 break;
         }
+    }
+
+    @Override
+    public void onActionError(Throwable throwable, View view, String actionType, Object model) {
+        mCallback.showMessage("TestError: " + (throwable != null ? throwable.getMessage() : null));
+    }
+
+    @Override
+    public void onActionDismiss(String reason, View view, String actionType, Object model) {
+        mCallback.showMessage("Action dismissed. Reason: " + reason);
     }
 
     public void onSaveInstanceState(Bundle outState) {
