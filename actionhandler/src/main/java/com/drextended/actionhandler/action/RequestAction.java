@@ -78,8 +78,23 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
     }
 
     @Override
-    protected void onDialogActionFire(Context context, View view, String actionType, M model) {
-        makeRequest(context, view, actionType, model);
+    protected void onDialogActionFire(Context context, View view, String actionType, M model, Object payload) {
+        makeRequest(context, view, actionType, model, payload);
+    }
+
+    /**
+     * Prepare and call a network request
+     *
+     * @param context    The Context, which generally get from view by {@link View#getContext()}
+     * @param view       The view, which can be used for prepare any visual effect (like animation),
+     *                   Generally it is that view which was clicked and initiated action to fire
+     * @param actionType Type of the action which was executed. Can be null.
+     * @param model      The model which should be handled by the action. Can be null.
+     * @deprecated       Use {@link #makeRequest(Context, View, String, Object, Object)}
+     */
+    @Deprecated
+    public void makeRequest(Context context, View view, String actionType, final M model) {
+        makeRequest(context, view, actionType, model, null);
     }
 
     /**
@@ -91,9 +106,24 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * @param actionType Type of the action which was executed. Can be null.
      * @param model      The model which should be handled by the action. Can be null.
      */
-    public void makeRequest(Context context, View view, String actionType, final M model) {
-        onRequestStarted(context, view, actionType, model);
-        onMakeRequest(context, view, actionType, model);
+    public void makeRequest(Context context, View view, String actionType, final M model, @Nullable Object payload) {
+        onRequestStarted(context, view, actionType, model, payload);
+        onMakeRequest(context, view, actionType, model, payload);
+    }
+
+    /**
+     * Called on request started. Shows progress dialog if enabled.
+     *
+     * @param context    The Context, which generally get from view by {@link View#getContext()}
+     * @param view       The view, which can be used for prepare any visual effect (like animation),
+     *                   Generally it is that view which was clicked and initiated action to fire
+     * @param actionType Type of the action which was executed. Can be null.
+     * @param model      The model which should be handled by the action. Can be null.
+     * @deprecated       Use {@link #onRequestStarted(Context, View, String, Object, Object)}
+     */
+    @Deprecated
+    protected void onRequestStarted(Context context, View view, String actionType, M model) {
+        onRequestStarted(context, view, actionType, model, null);
     }
 
     /**
@@ -105,7 +135,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * @param actionType Type of the action which was executed. Can be null.
      * @param model      The model which should be handled by the action. Can be null.
      */
-    protected void onRequestStarted(Context context, View view, String actionType, M model) {
+    protected void onRequestStarted(Context context, View view, String actionType, M model, @Nullable Object payload) {
         if (mShowProgressEnabled) showProgressDialog(context, view, actionType, model);
     }
 
@@ -187,7 +217,24 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      *                   Generally it is that view which was clicked and initiated action to fire
      * @param actionType Type of the action which was executed.
      * @param model      The model which was used in request.
+     * @deprecated       Use {@link #onMakeRequest(Context, View, String, Object, Object)} instead
      */
-    protected abstract void onMakeRequest(Context context, View view, String actionType, final M model);
+    @Deprecated
+    protected void onMakeRequest(Context context, View view, String actionType, final M model) {
+        onMakeRequest(context, view, actionType, model, null);
+    }
+
+    /**
+     * Implement network request there.
+     * Note: You should call {@link #onResponseSuccess(Context, View, String, Object, Object)} if request finished successfully
+     * and {@link #onResponseError(Context, View, String, Object, Throwable)} if it is failed.
+     *
+     * @param context    The Context, which generally get from view by {@link View#getContext()}
+     * @param view       The view, which can be used for prepare any visual effect (like animation),
+     *                   Generally it is that view which was clicked and initiated action to fire
+     * @param actionType Type of the action which was executed.
+     * @param model      The model which was used in request.
+     */
+    protected abstract void onMakeRequest(Context context, View view, String actionType, final M model, @Nullable Object payload);
 
 }

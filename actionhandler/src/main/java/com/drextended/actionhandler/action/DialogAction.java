@@ -62,17 +62,22 @@ public abstract class DialogAction<M> extends BaseAction<M> {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         if (title != null) builder.setTitle(title);
         builder.setMessage(getDialogMessage(context, actionType, model))
-                .setNegativeButton(getNegativeButtonTitleResId(), null)
+                .setNegativeButton(getNegativeButtonTitleResId(), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        notifyOnActionDismiss("Dialog cancelled", view, actionType, model);
+                    }
+                })
                 .setPositiveButton(getPositiveButtonTitleResId(), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        onDialogActionFire(context, view, actionType, model);
+                        onDialogActionFire(context, view, actionType, model, null);
                     }
                 })
-                .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
                     @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        notifyOnActionDismiss("Dialog dismissed", view, actionType, model);
+                    public void onCancel(DialogInterface dialog) {
+                        notifyOnActionDismiss("Dialog cancelled", view, actionType, model);
                     }
                 });
         return builder.create();
@@ -128,8 +133,25 @@ public abstract class DialogAction<M> extends BaseAction<M> {
      *                   Generally it is that view which was clicked and initiated action to fire
      * @param actionType Type of the action which was executed. Can be null.
      * @param model      The model which should be handled by the action. Can be null.
+     * @deprecated       Use {@link #onDialogActionFire(Context, View, String, Object, Object)}
      */
-    protected abstract void onDialogActionFire(Context context, View view, String actionType, M model);
+    @Deprecated
+    protected void onDialogActionFire(Context context, View view, String actionType, M model){
+        onDialogActionFire(context, view, actionType, model, null);
+    }
+
+    /**
+     * Executes the action. Called if positive button on a dialog was clicked.
+     *
+     * @param context    The Context, which generally get from view by {@link View#getContext()}
+     * @param view       The view, which can be used for prepare any visual effect (like animation),
+     *                   Generally it is that view which was clicked and initiated action to fire
+     * @param actionType Type of the action which was executed. Can be null.
+     * @param model      The model which should be handled by the action. Can be null.
+     * @param payload    The payload, for example the parameter for the request
+     */
+    protected void onDialogActionFire(Context context, View view, String actionType, M model, @Nullable Object payload){
+    }
 
     /**
      * Wrap {@link Action} so that it can show dialog before fired.

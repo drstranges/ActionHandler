@@ -35,6 +35,7 @@ import com.drextended.actionhandler.listener.OnActionFiredListener;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Specific type of action which can contain a few other actions, show them as menu items,
@@ -261,9 +262,11 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
             //noinspection unchecked
             menu.add(0, index, 0, item.titleProvider.getTitle(context, model));
         }
+        final AtomicBoolean activated = new AtomicBoolean(false);
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
+                activated.set(true);
                 final ActionItem actionItem = menuItems.get(item.getItemId());
                 //noinspection unchecked
                 actionItem.action.onFireAction(context, view, actionItem.actionType, model);
@@ -273,7 +276,9 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
         popupMenu.setOnDismissListener(new PopupMenu.OnDismissListener() {
             @Override
             public void onDismiss(PopupMenu menu) {
-                notifyOnActionDismiss("CompositeAction menu dismissed", view, actionType, model);
+                if (!activated.get()) {
+                    notifyOnActionDismiss("CompositeAction menu dismissed", view, actionType, model);
+                }
             }
         });
         return popupMenu;
@@ -309,10 +314,10 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
                 //noinspection unchecked
                 actionItem.action.onFireAction(context, view, actionItem.actionType, model);
             }
-        }).setOnDismissListener(new DialogInterface.OnDismissListener() {
+        }).setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
-            public void onDismiss(DialogInterface dialog) {
-                notifyOnActionDismiss("CompositeAction menu dismissed", view, actionType, model);
+            public void onCancel(DialogInterface dialog) {
+                notifyOnActionDismiss("CompositeAction menu cancelled", view, actionType, model);
             }
         });
         return builder;
