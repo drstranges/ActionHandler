@@ -126,7 +126,7 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
     @Deprecated
     @Nullable
     protected Observable<RM> getRequest(Context context, View view, String actionType, M model) {
-        return getRequest(context, view, actionType, model, null);
+        return null;
     }
 
     /**
@@ -144,7 +144,7 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
      */
     @Nullable
     protected Observable<RM> getRequest(Context context, View view, String actionType, M model, @Nullable Object payload) {
-        return null;
+        return getRequest(context, view, actionType, model);
     }
 
     /**

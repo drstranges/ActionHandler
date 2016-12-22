@@ -221,7 +221,6 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      */
     @Deprecated
     protected void onMakeRequest(Context context, View view, String actionType, final M model) {
-        onMakeRequest(context, view, actionType, model, null);
     }
 
     /**
@@ -236,6 +235,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * @param model      The model which was used in request.
      */
     protected void onMakeRequest(Context context, View view, String actionType, final M model, @Nullable Object payload){
+        onMakeRequest(context, view, actionType, model);
     }
 
 }

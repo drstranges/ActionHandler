@@ -133,9 +133,7 @@ public abstract class DialogAction<M> extends BaseAction<M> {
      *                   Generally it is that view which was clicked and initiated action to fire
      * @param actionType Type of the action which was executed. Can be null.
      * @param model      The model which should be handled by the action. Can be null.
-     * @deprecated       Use {@link #onDialogActionFire(Context, View, String, Object, Object)}
      */
-    @Deprecated
     protected void onDialogActionFire(Context context, View view, String actionType, M model){
         onDialogActionFire(context, view, actionType, model, null);
     }
