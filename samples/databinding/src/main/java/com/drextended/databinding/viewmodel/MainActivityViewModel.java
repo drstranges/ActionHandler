@@ -73,23 +73,24 @@ public class MainActivityViewModel extends BaseViewModel implements OnActionFire
                 .addAction(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()))
                 .addAction(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction())
                 .addAction(ActionType.FIRE_COMPOSITE_ACTION,
-                        new CompositeAction<String>(new CompositeAction.TitleProvider<String>() {
+                        new CompositeAction<>(new CompositeAction.TitleProvider<String>() {
                             @Override
                             public String getTitle(Context context, String model) {
                                 return "Title (" + model + ")";
                             }
                         },
-                                new ActionItem<String>(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), new CompositeAction.TitleProvider<String>() {
+                                new ActionItem<>(R.drawable.ic_touch_app_black_24dp, 0,
+                                        ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), new CompositeAction.TitleProvider<String>() {
                                     @Override
                                     public String getTitle(Context context, String model) {
                                         // There you can return any title for menu item using some fields from model
                                         return context.getString(R.string.fire_intent_action);
                                     }
                                 }),
-                                new ActionItem(ActionType.FIRE_ACTION, new ShowToastAction(), R.string.fire_simple_action),
-                                new ActionItem(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()), R.string.fire_dialog_action),
-                                new ActionItem(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction(), R.string.fire_request_action),
-                                new ActionItem(ActionType.FIRE_RX_REQUEST_ACTION, new SampleRxRequestAction(), R.string.fire_rx_request_action)
+                                new ActionItem(R.drawable.ic_announcement_black_24dp, R.color.greenLight, ActionType.FIRE_ACTION, new ShowToastAction(), R.string.fire_simple_action),
+                                new ActionItem(R.drawable.ic_announcement_black_24dp, R.color.amber, ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()), R.string.fire_dialog_action),
+                                new ActionItem(R.drawable.ic_cloud_upload_black_24dp, R.color.red, ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction(), R.string.fire_request_action),
+                                new ActionItem(0, 0, ActionType.FIRE_RX_REQUEST_ACTION, new SampleRxRequestAction(), R.string.fire_rx_request_action)
                         ))
                 .addActionInterceptor(this)
                 .addActionFiredListener(this)

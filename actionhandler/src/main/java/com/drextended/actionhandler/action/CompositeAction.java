@@ -18,16 +18,28 @@ package com.drextended.actionhandler.action;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.drawable.Drawable;
+import android.support.annotation.ColorRes;
+import android.support.annotation.DrawableRes;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.drextended.actionhandler.R;
 import com.drextended.actionhandler.listener.OnActionDismissListener;
 import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
@@ -195,11 +207,11 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
     /**
      * Show menu with list of actions, which can handle this {@param model}.
      *
-     * @param context The Context, which generally get from view by {@link View#getContext()}
-     * @param view    The View, which can be used for prepare any visual effect (like animation),
-     *                Generally it is that view which was clicked and initiated action to fire.
+     * @param context    The Context, which generally get from view by {@link View#getContext()}
+     * @param view       The View, which can be used for prepare any visual effect (like animation),
+     *                   Generally it is that view which was clicked and initiated action to fire.
      * @param actionType The action type
-     * @param model   The model which should be handled by the action.
+     * @param model      The model which should be handled by the action.
      */
     private void showMenu(final Context context, final View view, String actionType, final M model) {
 
@@ -245,12 +257,12 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
     /**
      * Prepares popup menu to show given menu items
      *
-     * @param context   The Context, which generally get from view by {@link View#getContext()}
-     * @param view      The View, which can be used for prepare any visual effect (like animation),
-     *                  Generally it is that view which was clicked and initiated action to fire.
+     * @param context    The Context, which generally get from view by {@link View#getContext()}
+     * @param view       The View, which can be used for prepare any visual effect (like animation),
+     *                   Generally it is that view which was clicked and initiated action to fire.
      * @param actionType The action type
-     * @param model     The model which should be handled by the action.
-     * @param menuItems list of items which will be shown in a menu
+     * @param model      The model which should be handled by the action.
+     * @param menuItems  list of items which will be shown in a menu
      * @return popup menu to show given menu items
      */
     protected PopupMenu buildPopupMenu(final Context context, final View view, final String actionType, final M model, final List<ActionItem> menuItems) {
@@ -287,27 +299,19 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
     /**
      * Prepares alert dialog to show given menu items
      *
-     * @param context   The Context, which generally get from view by {@link View#getContext()}
-     * @param view      The View, which can be used for prepare any visual effect (like animation),
-     *                  Generally it is that view which was clicked and initiated action to fire.
+     * @param context    The Context, which generally get from view by {@link View#getContext()}
+     * @param view       The View, which can be used for prepare any visual effect (like animation),
+     *                   Generally it is that view which was clicked and initiated action to fire.
      * @param actionType The action type
-     * @param model     The model which should be handled by the action.
-     * @param menuItems list of items which will be shown in a menu
+     * @param model      The model which should be handled by the action.
+     * @param menuItems  list of items which will be shown in a menu
      * @return alert dialog builder to show given menu items
      */
     protected AlertDialog.Builder buildAlertDialog(final Context context, final View view, final String actionType, final M model, String title, final List<ActionItem> menuItems) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context)
                 .setTitle(title);
 
-        int count = menuItems.size();
-        final CharSequence[] itemLabels = new CharSequence[count];
-
-        for (int index = 0; index < count; index++) {
-            final ActionItem item = menuItems.get(index);
-            //noinspection unchecked
-            itemLabels[index] = item.titleProvider.getTitle(context, model);
-        }
-        builder.setItems(itemLabels, new DialogInterface.OnClickListener() {
+        builder.setAdapter(new MenuItemsAdapter(getMenuItemLayoutResId(), menuItems, model), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 final ActionItem actionItem = menuItems.get(which);
@@ -321,6 +325,15 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
             }
         });
         return builder;
+    }
+
+    /**
+     * Returns layout res id for menu item.
+     * Has to contain at least TextView with id "@android:id/text1" and ImageView with id "@android:id/icon".
+     * @return the layout res id for menu item.
+     */
+    protected int getMenuItemLayoutResId() {
+        return R.layout.item_menu_composit_action;
     }
 
     @Override
@@ -354,22 +367,53 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
          * Action associated with this item.
          */
         public final Action action;
+        /**
+         * Menu icon res id associated with this item.
+         */
+        public final int iconResId;
+        /**
+         * Tint color for menu icon associated with this item.
+         */
+        public final int iconTintColorResId;
 
         /**
-         * @param actionType     The action type associated with this item.
-         * @param action         The action associated with this item.
+         * @param actionType         The action type associated with this item.
+         * @param action             The action associated with this item.
          * @param menuItemTitleResId The resource id for the title associated with this item.
          */
         public ActionItem(String actionType, Action action, @StringRes int menuItemTitleResId) {
-            this(actionType, action, new SimpleTitleProvider<M>(menuItemTitleResId));
+            this(0, 0, actionType, action, new SimpleTitleProvider<M>(menuItemTitleResId));
         }
 
         /**
-         * @param actionType     The action type associated with this item.
-         * @param action         The action associated with this item.
-         * @param titleProvider  provider for corresponding menu item's title
+         * @param iconResId          The icon res id associated with this item.
+         * @param actionType         The action type associated with this item.
+         * @param action             The action associated with this item.
+         * @param menuItemTitleResId The resource id for the title associated with this item.
+         */
+        public ActionItem(@DrawableRes int iconResId, @ColorRes int iconTintColorResId, String actionType, Action action, @StringRes int menuItemTitleResId) {
+            this(iconResId, iconTintColorResId, actionType, action, new SimpleTitleProvider<M>(menuItemTitleResId));
+        }
+
+        /**
+         * @param actionType    The action type associated with this item.
+         * @param action        The action associated with this item.
+         * @param titleProvider provider for corresponding menu item's title
          */
         public ActionItem(String actionType, Action action, TitleProvider<M> titleProvider) {
+            this(0, 0, actionType, action, titleProvider);
+        }
+
+        /**
+         * @param iconResId          The icon res id associated with this item.
+         * @param iconTintColorResId The icon tint color res id for the icon.
+         * @param actionType         The action type associated with this item.
+         * @param action             The action associated with this item.
+         * @param titleProvider      provider for corresponding menu item's title
+         */
+        public ActionItem(@DrawableRes int iconResId, @ColorRes int iconTintColorResId, String actionType, Action action, TitleProvider<M> titleProvider) {
+            this.iconResId = iconResId;
+            this.iconTintColorResId = iconTintColorResId;
             this.actionType = actionType;
             this.action = action;
             this.titleProvider = titleProvider;
@@ -414,6 +458,79 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
         @Override
         public String getTitle(Context context, M model) {
             return mTitleResId == 0 ? null : context.getString(mTitleResId);
+        }
+    }
+
+    private static class MenuItemsAdapter extends BaseAdapter {
+        private final int mItemLayoutResId;
+        private final List<ActionItem> mItems;
+        private final Object mModel;
+        private final boolean mHasIcons;
+
+        public MenuItemsAdapter(@LayoutRes int itemLayoutResId, List<ActionItem> menuItems, Object model) {
+            mItemLayoutResId = itemLayoutResId;
+            mItems = menuItems;
+            mModel = model;
+            mHasIcons = checkHasIcons(mItems);
+        }
+
+        private boolean checkHasIcons(List<ActionItem> items) {
+            for (final ActionItem item : items) {
+                if (item.iconResId != 0) return true;
+            }
+            return false;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            Context context = parent.getContext();
+            if (convertView == null) {
+                convertView = LayoutInflater.from(context).inflate(mItemLayoutResId, parent, false);
+            }
+
+            ActionItem item = mItems.get(position);
+            //noinspection unchecked
+            final String label = item.titleProvider.getTitle(context, mModel);
+            ((TextView) convertView.findViewById(android.R.id.text1)).setText(label);
+            ImageView imageView = (ImageView) convertView.findViewById(android.R.id.icon);
+            if (item.iconResId != 0) {
+                imageView.setVisibility(View.VISIBLE);
+
+                if (item.iconTintColorResId != 0) {
+                    final Drawable iconDrawable = ContextCompat.getDrawable(context, item.iconResId);
+                    if (iconDrawable != null) {
+                        Drawable drawable = DrawableCompat.wrap(iconDrawable.mutate());
+                        DrawableCompat.setTint(drawable, ContextCompat.getColor(context, item.iconTintColorResId));
+                        imageView.setImageDrawable(drawable);
+                    }
+                } else {
+                    imageView.setImageResource(item.iconResId);
+                }
+            } else {
+                imageView.setVisibility(mHasIcons ? View.INVISIBLE : View.GONE);
+            }
+
+            return convertView;
+        }
+
+        @Override
+        public int getCount() {
+            return mItems != null ? mItems.size() : 0;
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return mItems.get(position);
+        }
+
+        @Override
+        public boolean hasStableIds() {
+            return true;
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
         }
     }
 }
