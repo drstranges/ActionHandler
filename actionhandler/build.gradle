@@ -1,9 +1,9 @@
 apply plugin: 'com.android.library'
 
 ext {
-    libraryVersionRevision = 28
-    libraryVersionMinor = 1
-    libraryVersionMajor = 0
+    libraryVersionRevision = 0
+    libraryVersionMinor = 0
+    libraryVersionMajor = 1
 
     libraryVersion = libraryVersionMajor + '.' + libraryVersionMinor + '.' + libraryVersionRevision
 

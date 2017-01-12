@@ -15,7 +15,7 @@ repositories {
     jcenter()
 }
 dependencies {
-    compile 'com.drextended.actionhandler:actionhandler:0.1.27'
+    compile 'com.drextended.actionhandler:actionhandler:1.0.0'
 }
 ```
 
