@@ -67,10 +67,10 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
                                 return "Title (" + model + ")";
                             }
                         },
-                                new ActionItem(R.drawable.ic_touch_app_black_24dp, 0, ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), R.string.fire_intent_action),
-                                new ActionItem(R.drawable.ic_announcement_black_24dp, R.color.greenLight, ActionType.FIRE_ACTION, new ShowToastAction(), R.string.fire_simple_action),
-                                new ActionItem(R.drawable.ic_announcement_black_24dp, R.color.amber, ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()), R.string.fire_dialog_action),
-                                new ActionItem(R.drawable.ic_cloud_upload_black_24dp, R.color.red, ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction(), R.string.fire_request_action)
+                                new ActionItem(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), R.drawable.ic_touch_app_black_24dp, 0, R.string.fire_intent_action),
+                                new ActionItem(ActionType.FIRE_ACTION, new ShowToastAction(), R.drawable.ic_announcement_black_24dp, R.color.greenLight, R.string.fire_simple_action),
+                                new ActionItem(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()), R.drawable.ic_announcement_black_24dp, R.color.amber, R.string.fire_dialog_action),
+                                new ActionItem(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction(), R.drawable.ic_cloud_upload_black_24dp, R.color.red, R.string.fire_request_action)
                         ))
                 .addActionInterceptor(this)
                 .addActionFiredListener(this)

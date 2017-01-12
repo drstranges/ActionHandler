@@ -382,17 +382,17 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
          * @param menuItemTitleResId The resource id for the title associated with this item.
          */
         public ActionItem(String actionType, Action action, @StringRes int menuItemTitleResId) {
-            this(0, 0, actionType, action, new SimpleTitleProvider<M>(menuItemTitleResId));
+            this(actionType, action, 0, 0, new SimpleTitleProvider<M>(menuItemTitleResId));
         }
 
         /**
-         * @param iconResId          The icon res id associated with this item.
          * @param actionType         The action type associated with this item.
          * @param action             The action associated with this item.
+         * @param iconResId          The icon res id associated with this item.
          * @param menuItemTitleResId The resource id for the title associated with this item.
          */
-        public ActionItem(@DrawableRes int iconResId, @ColorRes int iconTintColorResId, String actionType, Action action, @StringRes int menuItemTitleResId) {
-            this(iconResId, iconTintColorResId, actionType, action, new SimpleTitleProvider<M>(menuItemTitleResId));
+        public ActionItem(String actionType, Action action, @DrawableRes int iconResId, @ColorRes int iconTintColorResId, @StringRes int menuItemTitleResId) {
+            this(actionType, action, iconResId, iconTintColorResId, new SimpleTitleProvider<M>(menuItemTitleResId));
         }
 
         /**
@@ -401,17 +401,17 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
          * @param titleProvider provider for corresponding menu item's title
          */
         public ActionItem(String actionType, Action action, TitleProvider<M> titleProvider) {
-            this(0, 0, actionType, action, titleProvider);
+            this(actionType, action, 0, 0, titleProvider);
         }
 
         /**
-         * @param iconResId          The icon res id associated with this item.
-         * @param iconTintColorResId The icon tint color res id for the icon.
          * @param actionType         The action type associated with this item.
          * @param action             The action associated with this item.
+         * @param iconResId          The icon res id associated with this item.
+         * @param iconTintColorResId The icon tint color res id for the icon.
          * @param titleProvider      provider for corresponding menu item's title
          */
-        public ActionItem(@DrawableRes int iconResId, @ColorRes int iconTintColorResId, String actionType, Action action, TitleProvider<M> titleProvider) {
+        public ActionItem(String actionType, Action action, @DrawableRes int iconResId, @ColorRes int iconTintColorResId, TitleProvider<M> titleProvider) {
             this.iconResId = iconResId;
             this.iconTintColorResId = iconTintColorResId;
             this.actionType = actionType;

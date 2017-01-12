@@ -15,7 +15,7 @@ repositories {
     jcenter()
 }
 dependencies {
-    compile 'com.drextended.actionhandler:actionhandler:0.1.26'
+    compile 'com.drextended.actionhandler:actionhandler:0.1.27'
 }
 ```
 
@@ -46,7 +46,7 @@ dependencies {
                             }
                         },
                                 new ActionItem(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), R.string.menu_item_1),
-                                new ActionItem(R.drawable.icon, R.color.tint, ActionType.FIRE_ACTION, new ShowToastAction(), R.string.menu_item_2),
+                                new ActionItem(ActionType.FIRE_ACTION, new ShowToastAction(), R.drawable.icon, R.color.tint, R.string.menu_item_2),
                         ))
                 .addActionInterceptor(this)
                 .addActionFiredListener(this)

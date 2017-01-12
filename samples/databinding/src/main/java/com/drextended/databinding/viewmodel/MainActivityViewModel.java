@@ -79,18 +79,18 @@ public class MainActivityViewModel extends BaseViewModel implements OnActionFire
                                 return "Title (" + model + ")";
                             }
                         },
-                                new ActionItem<>(R.drawable.ic_touch_app_black_24dp, 0,
-                                        ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), new CompositeAction.TitleProvider<String>() {
+                                new ActionItem<>(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), R.drawable.ic_touch_app_black_24dp, 0,
+                                        new CompositeAction.TitleProvider<String>() {
                                     @Override
                                     public String getTitle(Context context, String model) {
                                         // There you can return any title for menu item using some fields from model
                                         return context.getString(R.string.fire_intent_action);
                                     }
                                 }),
-                                new ActionItem(R.drawable.ic_announcement_black_24dp, R.color.greenLight, ActionType.FIRE_ACTION, new ShowToastAction(), R.string.fire_simple_action),
-                                new ActionItem(R.drawable.ic_announcement_black_24dp, R.color.amber, ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()), R.string.fire_dialog_action),
-                                new ActionItem(R.drawable.ic_cloud_upload_black_24dp, R.color.red, ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction(), R.string.fire_request_action),
-                                new ActionItem(0, 0, ActionType.FIRE_RX_REQUEST_ACTION, new SampleRxRequestAction(), R.string.fire_rx_request_action)
+                                new ActionItem(ActionType.FIRE_ACTION, new ShowToastAction(), R.drawable.ic_announcement_black_24dp, R.color.greenLight, R.string.fire_simple_action),
+                                new ActionItem(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()), R.drawable.ic_announcement_black_24dp, R.color.amber, R.string.fire_dialog_action),
+                                new ActionItem(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction(), R.drawable.ic_cloud_upload_black_24dp, R.color.red, R.string.fire_request_action),
+                                new ActionItem(ActionType.FIRE_RX_REQUEST_ACTION, new SampleRxRequestAction(), 0, 0, R.string.fire_rx_request_action)
                         ))
                 .addActionInterceptor(this)
                 .addActionFiredListener(this)
