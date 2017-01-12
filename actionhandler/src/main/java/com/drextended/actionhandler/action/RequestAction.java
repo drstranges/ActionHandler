@@ -132,7 +132,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      */
     protected void onRequestStarted(Context context, View view, String actionType, M model, @Nullable Object payload) {
         if (mShowProgressEnabled) showProgressDialog(context, view, actionType, model);
-        onRequestStarted(context, view, actionType, model, null);
+        onRequestStarted(context, view, actionType, model);
     }
 
     /**
