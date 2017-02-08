@@ -19,22 +19,25 @@ package com.drextended.actionhandler.listener;
 import android.content.Context;
 import android.view.View;
 
+import com.drextended.actionhandler.action.Action;
+
 /**
- * Interface definition for a callback to be invoked after a view with an action is clicked
- * and before action type handling started. If {@link #onInterceptAction(Context, View, String, Object)} return true
- * then this action type will not be handled.
+ * Interface definition for a callback to be invoked right before specific action will be fired.
+ * If {@link #onInterceptActionFire(Context, View, String, Object, Action)} return true
+ * then this action will not be fired.
  */
-public interface ActionInterceptor {
+public interface ActionFireInterceptor {
     /**
-     * Called after a view with an action is clicked
-     * and before action handling started. If return true then this action will not be handled.
+     * Called right before specific action will be fired
+     * If return true then this action will not be fired.
      *
      *
      * @param context
      * @param view       The view that was clicked.
      * @param actionType The action type, which appointed to the view
      * @param model      The model, which  appointed to the view and should be handled
+     * @param action     The action, which is prepared to fire
      * @return true for intercept the action, false to handle the action in normal way.
      */
-    boolean onInterceptAction(Context context, final View view, final String actionType, final Object model);
+    boolean onInterceptActionFire(Context context, final View view, final String actionType, final Object model, final Action action);
 }

@@ -15,8 +15,10 @@
  */
 package com.drextended.actionhandler.action;
 
+import android.content.Context;
 import android.view.View;
 
+import com.drextended.actionhandler.listener.ActionFireInterceptor;
 import com.drextended.actionhandler.listener.OnActionDismissListener;
 import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
@@ -46,6 +48,12 @@ public abstract class BaseAction<M> implements Action<M> {
      * Listeners for action dismiss events.
      */
     protected Set<OnActionDismissListener> mActionDismissListeners = new HashSet<>(1);
+
+    /**
+     * Callbacks to be invoked after a view with an action is clicked and before action handling started.
+     * Can intercept an action to prevent it to be fired
+     */
+    protected Set<ActionFireInterceptor> mActionFireInterceptors = new HashSet<>(1);
 
     /**
      * Add a listener that will be called when method {@link #notifyOnActionFired(View, String, Object)}
@@ -127,12 +135,39 @@ public abstract class BaseAction<M> implements Action<M> {
     }
 
     /**
+     * Add callback to be invoked right before specific action will be fired.
+     * Can intercept an action to prevent it to be fired
+     *
+     * @param interceptor The interceptor.
+     */
+    public void addActionFireInterceptor(ActionFireInterceptor interceptor) {
+        if (interceptor != null) mActionFireInterceptors.add(interceptor);
+    }
+
+    /**
+     * Remove interceptor.
+     *
+     * @param interceptor The interceptor.
+     */
+    public void removeActionFireInterceptor(ActionFireInterceptor interceptor) {
+        if (interceptor != null) mActionFireInterceptors.remove(interceptor);
+    }
+
+    /**
+     * Remove all interceptors.
+     */
+    public void removeAllActionFireInterceptors() {
+        mActionFireInterceptors.clear();
+    }
+
+    /**
      * Remove all listeners for action fire, error and dismiss events.
      */
     public void removeAllActionListeners() {
         mActionFiredListeners.clear();
         mActionErrorListeners.clear();
         mActionDismissListeners.clear();
+        mActionFireInterceptors.clear();
     }
 
 
@@ -178,5 +213,14 @@ public abstract class BaseAction<M> implements Action<M> {
         for (OnActionDismissListener listener : mActionDismissListeners) {
             listener.onActionDismiss(reason, view, actionType, model);
         }
+    }
+
+    protected boolean interceptActionFire(Context context, View view, String actionType, Object model, Action action) {
+        if (mActionFireInterceptors != null) {
+            for (ActionFireInterceptor interceptor : mActionFireInterceptors) {
+                if (interceptor.onInterceptActionFire(context, view, actionType, model, action)) return true;
+            }
+        }
+        return false;
     }
 }

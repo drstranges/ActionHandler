@@ -23,6 +23,7 @@ import com.drextended.actionhandler.action.Action;
 import com.drextended.actionhandler.action.BaseAction;
 import com.drextended.actionhandler.action.Cancelable;
 import com.drextended.actionhandler.listener.ActionClickListener;
+import com.drextended.actionhandler.listener.ActionFireInterceptor;
 import com.drextended.actionhandler.listener.ActionInterceptor;
 import com.drextended.actionhandler.listener.OnActionDismissListener;
 import com.drextended.actionhandler.listener.OnActionErrorListener;
@@ -37,7 +38,7 @@ import java.util.Set;
 /**
  * Use ActionHandler to manage action and bind them to view
  */
-public class ActionHandler implements ActionClickListener, OnActionFiredListener, OnActionErrorListener, OnActionDismissListener {
+public class ActionHandler implements ActionClickListener, OnActionFiredListener, OnActionErrorListener, OnActionDismissListener, ActionFireInterceptor {
 
     // Actions which was added to the handler
     protected final List<ActionPair> mActions;
@@ -51,9 +52,13 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
     // Callbacks to be invoked when an action is executed but dismissed
     protected Set<OnActionDismissListener> mOnActionDismissListeners;
 
+    // Callback to be invoked right before specific action will be fired.
+    // Can intercept an action to prevent it to be fired
+    protected Set<ActionFireInterceptor> mActionFireInterceptors;
+
     // Callback to be invoked after a view with an action is clicked and before action handling started.
     // Can intercept an action to prevent it to be fired
-    private List<ActionInterceptor> mActionInterceptors;
+    private Set<ActionInterceptor> mActionInterceptors;
 
     /**
      * @param actions list of actions to handle by this handler
@@ -67,6 +72,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
                 baseAction.addActionFiredListener(this);
                 baseAction.addActionErrorListener(this);
                 baseAction.addActionDismissListener(this);
+                baseAction.addActionFireInterceptor(this);
             }
         }
     }
@@ -192,16 +198,6 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
     }
 
     /**
-     * Remove all callbacks for action intercept, fire, error and dismiss events
-     */
-    public void removeAllActionListeners() {
-        removeAllActionFiredListeners();
-        removeAllActionDismissListeners();
-        removeAllActionInterceptors();
-        removeAllActionErrorListeners();
-    }
-
-    /**
      * Set new callback to be invoked after a view with an action is clicked and before action handling started.
      * Can intercept an action to prevent it to be fired
      *
@@ -219,14 +215,14 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
     }
 
     /**
-     * Add new callback to be invoked after a view with an action is clicked and before action handling started.
-     * Can intercept an action to prevent it to be fired
+     * Add new callback to be invoked after a view with an action is clicked and before action type handling started.
+     * Can intercept an action type to prevent it to be handled
      *
-     * @param actionInterceptor The interceptor, which can prevent actions to be fired
+     * @param actionInterceptor The interceptor, which can prevent action type to be handled
      */
     public void addActionInterceptor(ActionInterceptor actionInterceptor) {
         if (mActionInterceptors == null) {
-            mActionInterceptors = new ArrayList<>(1);
+            mActionInterceptors = new HashSet<>(1);
         }
         mActionInterceptors.add(actionInterceptor);
     }
@@ -238,17 +234,61 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
      */
     public void removeActionInterceptor(ActionInterceptor actionInterceptor) {
         if (mActionInterceptors != null) {
-            mActionInterceptors.clear();
+            mActionInterceptors.remove(actionInterceptor);
         }
     }
 
     /**
-     * Remove all interceptors
+     * Remove all action interceptors
      */
     public void removeAllActionInterceptors() {
         if (mActionInterceptors != null) {
             mActionInterceptors.clear();
         }
+    }
+
+    /**
+     * Add new callback to be invoked right before specific action will be fired..
+     * Can intercept an action to prevent it to be fired
+     *
+     * @param actionFireInterceptor The interceptor, which can prevent action to be fired
+     */
+    public void addActionFireInterceptor(ActionFireInterceptor actionFireInterceptor) {
+        if (mActionFireInterceptors == null) {
+            mActionFireInterceptors = new HashSet<>(1);
+        }
+        mActionFireInterceptors.add(actionFireInterceptor);
+    }
+
+    /**
+     * Remove action fire interceptor
+     *
+     * @param actionFireInterceptor The interceptor to remove
+     */
+    public void removeActionFireInterceptor(ActionFireInterceptor actionFireInterceptor) {
+        if (mActionFireInterceptors != null) {
+            mActionFireInterceptors.remove(actionFireInterceptor);
+        }
+    }
+
+    /**
+     * Remove all action fire interceptors
+     */
+    public void removeAllActionFireInterceptors() {
+        if (mActionFireInterceptors != null) {
+            mActionFireInterceptors.clear();
+        }
+    }
+
+    /**
+     * Remove all callbacks for action intercept, fire, error and dismiss events
+     */
+    public void removeAllActionListeners() {
+        removeAllActionFiredListeners();
+        removeAllActionDismissListeners();
+        removeAllActionInterceptors();
+        removeAllActionFireInterceptors();
+        removeAllActionErrorListeners();
     }
 
     @Override
@@ -276,6 +316,11 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
                 listener.onActionDismiss(reason, view, actionType, model);
             }
         }
+    }
+
+    @Override
+    public boolean onInterceptActionFire(Context context, View view, String actionType, Object model, Action action) {
+        return interceptActionFire(context, view, actionType, model, action);
     }
 
     /**
@@ -327,11 +372,21 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
             if (actionPair.actionType == null || actionPair.actionType.equals(actionType)) {
                 final Action action = actionPair.action;
                 if (action != null && action.isModelAccepted(model)) {
+                    if (interceptActionFire(context, view, actionType, model, action)) continue;
                     //noinspection unchecked
                     action.onFireAction(context, view, actionType, model);
                 }
             }
         }
+    }
+
+    private boolean interceptActionFire(Context context, View view, String actionType, Object model, Action action) {
+        if (mActionFireInterceptors != null) {
+            for (ActionFireInterceptor interceptor : mActionFireInterceptors) {
+                if (interceptor.onInterceptActionFire(context, view, actionType, model, action)) return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -362,7 +417,8 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
         private Set<OnActionFiredListener> mActionFiredListeners;
         private Set<OnActionErrorListener> mActionErrorListeners;
         private Set<OnActionDismissListener> mActionDismissListeners;
-        private List<ActionInterceptor> mActionInterceptors;
+        private Set<ActionInterceptor> mActionInterceptors;
+        private Set<ActionFireInterceptor> mActionFireInterceptors;
 
         public Builder() {
             mActions = new ArrayList<>();
@@ -452,16 +508,30 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
         }
 
         /**
-         * Add callback to be invoked after a view with an action is clicked and before action handling started.
-         * Can intercept an action to prevent it to be fired
+         * Add callback to be invoked after a view with an action is clicked and before action type handling started.
+         * Can intercept an action type to prevent it to be handled
          *
          * @param actionInterceptor The interceptor, which can prevent actions to be fired
          */
         public Builder addActionInterceptor(ActionInterceptor actionInterceptor) {
             if (mActionInterceptors == null) {
-                mActionInterceptors = new ArrayList<>(1);
+                mActionInterceptors = new HashSet<>(1);
             }
             mActionInterceptors.add(actionInterceptor);
+            return this;
+        }
+
+        /**
+         * Add callback to be invoked before specific action will be fired.
+         * Can intercept an action to prevent it to be fired
+         *
+         * @param actionFireInterceptor The interceptor, which can prevent actions to be fired
+         */
+        public Builder addActionFireInterceptor(ActionFireInterceptor actionFireInterceptor) {
+            if (mActionFireInterceptors == null) {
+                mActionFireInterceptors = new HashSet<>(1);
+            }
+            mActionFireInterceptors.add(actionFireInterceptor);
             return this;
         }
 
@@ -478,6 +548,9 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
             }
             if (mActionInterceptors != null && mActionInterceptors.size() > 0) {
                 actionHandler.mActionInterceptors = mActionInterceptors;
+            }
+            if (mActionFireInterceptors != null && mActionFireInterceptors.size() > 0) {
+                actionHandler.mActionFireInterceptors = mActionFireInterceptors;
             }
             return actionHandler;
         }

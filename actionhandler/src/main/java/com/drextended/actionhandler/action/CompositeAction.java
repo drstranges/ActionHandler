@@ -40,6 +40,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.drextended.actionhandler.R;
+import com.drextended.actionhandler.listener.ActionFireInterceptor;
 import com.drextended.actionhandler.listener.OnActionDismissListener;
 import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
@@ -57,7 +58,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @param <M>
  */
-public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredListener, OnActionErrorListener, OnActionDismissListener {
+public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredListener, OnActionErrorListener, OnActionDismissListener, ActionFireInterceptor {
 
     /**
      * Actions for show in a menu (dialog or popup window) and fire if is accepted
@@ -138,6 +139,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
                 baseAction.addActionFiredListener(this);
                 baseAction.addActionErrorListener(this);
                 baseAction.addActionDismissListener(this);
+                baseAction.addActionFireInterceptor(this);
             }
         }
     }
@@ -197,10 +199,16 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
     public void onFireAction(Context context, @Nullable View view, @Nullable String actionType, @Nullable M model) {
         if (!mDisplayDialogForSingleAction && getAcceptedActionCount(model) == 1) {
             final ActionItem actionItem = getFirstAcceptedActionItem(model);
-            if (actionItem != null) //noinspection unchecked
-                actionItem.action.onFireAction(context, view, actionType, model);
+            fireActionItem(context, view, actionType, model, actionItem);
         } else {
             showMenu(context, view, actionType, model);
+        }
+    }
+
+    private void fireActionItem(Context context, @Nullable View view, @Nullable String actionType, @Nullable M model, ActionItem actionItem) {
+        if (actionItem != null && ! interceptActionFire(context, view, actionType, model, actionItem.action)) {
+            //noinspection unchecked
+            actionItem.action.onFireAction(context, view, actionType, model);
         }
     }
 
@@ -280,8 +288,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
             public boolean onMenuItemClick(MenuItem item) {
                 activated.set(true);
                 final ActionItem actionItem = menuItems.get(item.getItemId());
-                //noinspection unchecked
-                actionItem.action.onFireAction(context, view, actionItem.actionType, model);
+                fireActionItem(context, view, actionItem.actionType, model, actionItem);
                 return true;
             }
         });
@@ -315,8 +322,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 final ActionItem actionItem = menuItems.get(which);
-                //noinspection unchecked
-                actionItem.action.onFireAction(context, view, actionItem.actionType, model);
+                fireActionItem(context, view, actionItem.actionType, model, actionItem);
             }
         }).setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
@@ -349,6 +355,11 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
     @Override
     public void onActionDismiss(String reason, View view, String actionType, Object model) {
         notifyOnActionDismiss(reason, view, actionType, model);
+    }
+
+    @Override
+    public boolean onInterceptActionFire(Context context, View view, String actionType, Object model, Action action) {
+        return interceptActionFire(context, view, actionType, model, action);
     }
 
     /**
