@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
                 .addAction(null, new SimpleAnimationAction()) // Applied for any actionType
                 .addAction(null, new TrackAction()) // Applied for any actionType
                 .addAction(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity())
+//                .addAction(ActionType.OPEN_NEW_SCREEN, IntentAction.from(SecondActivity.getIntent(this, null)))
                 .addAction(ActionType.FIRE_ACTION, new ShowToastAction())
                 .addAction(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()))
                 .addAction(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction())

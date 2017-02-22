@@ -27,6 +27,8 @@ import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 
+import com.drextended.actionhandler.util.AcceptCondition;
+
 /**
  * Base action to fire some intent
  *
@@ -199,5 +201,62 @@ public abstract class IntentAction<M> extends BaseAction<M> {
      */
     protected ActivityOptionsCompat prepareTransition(Context context, View view, Intent intent) {
         return null;
+    }
+
+    /**
+     * Create simple intent action
+     *
+     * @param intent          The intent to call
+     * @param intentType      Type of intent:
+     *                        {@link IntentType#START_ACTIVITY}, {@link IntentType#START_SERVICE}
+     *                        {@link IntentType#SEND_BROADCAST}, {@link IntentType#SEND_LOCAL_BROADCAST}
+     * @param acceptCondition Condition to check whether model is accepted
+     * @return The simple intent action
+     */
+    public static IntentAction from(Intent intent, IntentType intentType, AcceptCondition acceptCondition) {
+        return new SimpleIntentAction(intent, intentType, acceptCondition);
+    }
+
+    /**
+     * Create simple intent action to start activity intent
+     *
+     * @param intent The intent to start activity.
+     *               Any model is accepted.
+     * @return The simple intent action to start activity intent
+     */
+    public static IntentAction from(Intent intent) {
+        return new SimpleIntentAction(intent, IntentType.START_ACTIVITY, null);
+    }
+
+    /**
+     * Simple intent action
+     */
+    public static class SimpleIntentAction extends IntentAction {
+        protected final Intent mIntent;
+        protected final AcceptCondition mAcceptCondition;
+
+        /**
+         * @param intent          The intent to call
+         * @param intentType      Type of intent:
+         *                        {@link IntentType#START_ACTIVITY}, {@link IntentType#START_SERVICE}
+         *                        {@link IntentType#SEND_BROADCAST}, {@link IntentType#SEND_LOCAL_BROADCAST}
+         * @param acceptCondition Condition to check whether model is accepted
+         */
+        public SimpleIntentAction(Intent intent, IntentType intentType, @Nullable AcceptCondition acceptCondition) {
+            super(intentType != null ? intentType : IntentType.START_ACTIVITY);
+            mIntent = intent;
+            mAcceptCondition = acceptCondition;
+        }
+
+        @Override
+        public boolean isModelAccepted(Object model) {
+            return mAcceptCondition == null || mAcceptCondition.isModelAccepted(model);
+        }
+
+        @Nullable
+        @Override
+        public Intent getIntent(@Nullable View view, Context context, String actionType, Object model) {
+            return mIntent;
+        }
     }
 }
