@@ -28,6 +28,7 @@ import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+import rx.subscriptions.CompositeSubscription;
 
 /**
  * Base action for implementing call a network request with RxJava Observable (ex. using Retrofit + RxJava)
@@ -36,13 +37,19 @@ import rx.schedulers.Schedulers;
  * @param <M>  The type of model which can be handled
  */
 public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implements Cancelable {
-    protected Subscription mSubscription;
+    protected CompositeSubscription mSubscription;
+    protected boolean mUnsubscribeOnNewRequest = true;
 
     public RxRequestAction() {
     }
 
     public RxRequestAction(boolean showProgressEnabled, boolean showDialog) {
         super(showProgressEnabled, showDialog);
+    }
+
+    public RxRequestAction(boolean showProgressEnabled, boolean showDialog, boolean unsubscribeOnNewRequest) {
+        super(showProgressEnabled, showDialog);
+        this.mUnsubscribeOnNewRequest = unsubscribeOnNewRequest;
     }
 
     @Override
@@ -52,8 +59,13 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
             if (mShowProgressEnabled) hideProgressDialog();
             return;
         }
-        unsubscribe(mSubscription);
-        mSubscription = observableRequest
+        if (mUnsubscribeOnNewRequest) {
+            unsubscribe(mSubscription);
+        }
+        if (mSubscription == null || mSubscription.isUnsubscribed()) {
+            mSubscription = new CompositeSubscription();
+        }
+        mSubscription.add(observableRequest
                 .compose(applySchedulers())
                 .subscribe(new Subscriber<RM>() {
                     @Override
@@ -70,7 +82,7 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
                     public void onNext(RM response) {
                         onResponseSuccess(context, view, actionType, model, response);
                     }
-                });
+                }));
     }
 
     /**
