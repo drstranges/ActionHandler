@@ -343,8 +343,8 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
     }
 
     @Override
-    public void onActionFired(View view, String actionType, Object model) {
-        notifyOnActionFired(view, actionType, model);
+    public void onActionFired(View view, String actionType, Object model, Object result) {
+        notifyOnActionFired(view, actionType, model, result);
     }
 
     @Override

@@ -292,10 +292,10 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
     }
 
     @Override
-    public void onActionFired(View view, String actionType, Object model) {
+    public void onActionFired(View view, String actionType, Object model, Object result) {
         if (mOnActionFiredListeners != null) {
             for (final OnActionFiredListener listener : mOnActionFiredListeners) {
-                listener.onActionFired(view, actionType, model);
+                listener.onActionFired(view, actionType, model, result);
             }
         }
     }

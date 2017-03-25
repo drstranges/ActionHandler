@@ -180,8 +180,21 @@ public abstract class BaseAction<M> implements Action<M> {
      * @param model      model, which was handled
      */
     public void notifyOnActionFired(View view, String actionType, Object model) {
+        notifyOnActionFired(view, actionType, model, null);
+    }
+
+    /**
+     * Notify any registered listeners that the action has been fired.
+     *
+     * @param view       The View, which can be used for prepare any visual effect (like animation),
+     *                   Generally it is that view which was clicked and initiated action to fire.
+     * @param actionType type of the action
+     * @param model      model, which was handled
+     * @param result     The result of action
+     */
+    public void notifyOnActionFired(View view, String actionType, Object model, Object result) {
         for (OnActionFiredListener listener : mActionFiredListeners) {
-            listener.onActionFired(view, actionType, model);
+            listener.onActionFired(view, actionType, model, result);
         }
     }
 

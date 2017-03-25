@@ -149,7 +149,7 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
 
     /**
      * Called when request observable emits "onComplete" event.
-     * Hides progress dialog if enabled and call {@link #notifyOnActionFired}
+     * Hides progress dialog if enabled
      *
      * @param context    The Context, which generally get from view by {@link View#getContext()}
      * @param view       The view, which can be used for prepare any visual effect (like animation),
@@ -159,12 +159,11 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
      */
     protected void onResponseCompleted(Context context, View view, String actionType, M oldModel) {
         if (mShowProgressEnabled) hideProgressDialog();
-        notifyOnActionFired(view, actionType, oldModel);
     }
 
     /**
      * Called on request observable emits "onNext" event.
-     * Overrides super, so that not hides progress dialog and not call {@link #notifyOnActionFired} here.
+     * Overrides super, so that does not hide progress dialog but calls {@link #notifyOnActionFired} here.
      * See {@link #onResponseCompleted(Context, View, String, Object)} for that.
      *
      * @param context    The Context, which generally get from view by {@link View#getContext()}
@@ -176,6 +175,7 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
      */
     @Override
     protected void onResponseSuccess(Context context, View view, String actionType, M oldModel, RM response) {
-        //super.onResponseSuccess(context, view, actionType, oldModel, response);
+//        super.onResponseSuccess(context, view, actionType, oldModel, response);
+        notifyOnActionFired(view, actionType, oldModel, response);
     }
 }

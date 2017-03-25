@@ -203,8 +203,8 @@ public abstract class DialogAction<M> extends BaseAction<M> {
         }
 
         @Override
-        public void onActionFired(View view, String actionType, Object model) {
-            notifyOnActionFired(view, actionType, model);
+        public void onActionFired(View view, String actionType, Object model, Object result) {
+            notifyOnActionFired(view, actionType, model, result);
         }
     }
 }

@@ -163,7 +163,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      */
     protected void onResponseSuccess(Context context, View view, String actionType, M oldModel, RM response) {
         if (mShowProgressEnabled) hideProgressDialog();
-        notifyOnActionFired(view, actionType, oldModel);
+        notifyOnActionFired(view, actionType, oldModel, response);
     }
 
     /**

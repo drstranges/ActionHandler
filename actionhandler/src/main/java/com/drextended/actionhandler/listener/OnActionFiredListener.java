@@ -29,6 +29,7 @@ public interface OnActionFiredListener {
      * @param view       The View, which can be used for prepare any visual effect (like animation),
      * @param actionType The action type, which appointed to the view
      * @param model      The model, which  appointed to the view and should be handled
+     * @param result     The result of action
      */
-    void onActionFired(View view, String actionType, Object model);
+    void onActionFired(View view, String actionType, Object model, Object result);
 }
