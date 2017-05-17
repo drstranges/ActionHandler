@@ -27,6 +27,7 @@
         android:layout_height="24dp"
         android:layout_gravity="center_vertical"
         android:layout_marginLeft="24dp"
+        android:duplicateParentState="true"
         tools:src="@android:drawable/ic_menu_edit"/>
 
     <TextView
@@ -36,6 +37,7 @@
         android:layout_marginLeft="24dp"
         android:ellipsize="marquee"
         android:gravity="center_vertical"
+        android:duplicateParentState="true"
         android:minHeight="?attr/listPreferredItemHeightSmall"
         android:paddingRight="?attr/listPreferredItemPaddingRight"
         android:textAppearance="?attr/textAppearanceListItemSmall"

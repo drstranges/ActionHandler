@@ -65,6 +65,33 @@ public class MainActivityViewModel extends BaseViewModel implements OnActionFire
     }
 
     private ActionHandler buildActionHandler() {
+
+        CompositeAction<String> menuAction = new CompositeAction<>(new CompositeAction.TitleProvider<String>() {
+            @Override
+            public String getTitle(Context context, String model) {
+                return "Title (" + model + ")";
+            }
+        }, true, true,
+                new ActionItem<>(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), R.drawable.ic_touch_app_black_24dp, 0,
+                        new CompositeAction.TitleProvider<String>() {
+                            @Override
+                            public String getTitle(Context context, String model) {
+                                // There you can return any title for menu item using some fields from model
+                                return context.getString(R.string.fire_intent_action);
+                            }
+                        }),
+                new ActionItem(ActionType.FIRE_ACTION, new ShowToastAction(), R.drawable.ic_announcement_black_24dp, R.color.greenLight, R.string.fire_simple_action),
+                new ActionItem(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()), R.drawable.ic_announcement_black_24dp, R.color.amber, R.string.fire_dialog_action),
+                new ActionItem(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction() {
+                    @Override
+                    public boolean isModelAccepted(Object model) {
+                        return super.isModelAccepted(model) && mClickCount % 3 == 0;
+                    }
+                }, R.drawable.ic_cloud_upload_black_24dp, R.color.red, R.string.fire_request_action),
+                new ActionItem(ActionType.FIRE_RX_REQUEST_ACTION, new SampleRxRequestAction(), 0, 0, R.string.fire_rx_request_action)
+        );
+        menuAction.setShowAsPopupMenuEnabled(false);
+
         return new ActionHandler.Builder()
                 .addAction(null, new SimpleAnimationAction()) // Applied for any actionType
                 .addAction(null, new TrackAction()) // Applied for any actionType
@@ -72,26 +99,7 @@ public class MainActivityViewModel extends BaseViewModel implements OnActionFire
                 .addAction(ActionType.FIRE_ACTION, new ShowToastAction())
                 .addAction(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()))
                 .addAction(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction())
-                .addAction(ActionType.FIRE_COMPOSITE_ACTION,
-                        new CompositeAction<>(new CompositeAction.TitleProvider<String>() {
-                            @Override
-                            public String getTitle(Context context, String model) {
-                                return "Title (" + model + ")";
-                            }
-                        },
-                                new ActionItem<>(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), R.drawable.ic_touch_app_black_24dp, 0,
-                                        new CompositeAction.TitleProvider<String>() {
-                                    @Override
-                                    public String getTitle(Context context, String model) {
-                                        // There you can return any title for menu item using some fields from model
-                                        return context.getString(R.string.fire_intent_action);
-                                    }
-                                }),
-                                new ActionItem(ActionType.FIRE_ACTION, new ShowToastAction(), R.drawable.ic_announcement_black_24dp, R.color.greenLight, R.string.fire_simple_action),
-                                new ActionItem(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()), R.drawable.ic_announcement_black_24dp, R.color.amber, R.string.fire_dialog_action),
-                                new ActionItem(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction(), R.drawable.ic_cloud_upload_black_24dp, R.color.red, R.string.fire_request_action),
-                                new ActionItem(ActionType.FIRE_RX_REQUEST_ACTION, new SampleRxRequestAction(), 0, 0, R.string.fire_rx_request_action)
-                        ))
+                .addAction(ActionType.FIRE_COMPOSITE_ACTION, menuAction)
                 .addActionInterceptor(this)
                 .addActionFiredListener(this)
                 .addActionErrorListener(this)

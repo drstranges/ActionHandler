@@ -35,6 +35,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -47,6 +48,7 @@ import com.drextended.actionhandler.listener.OnActionFiredListener;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -76,7 +78,10 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
 
     // Flag for settings how a single action item should be fired.
     // True for show a menu, false for fire action directly.
-    private boolean mDisplayDialogForSingleAction = true;
+    protected boolean mDisplayDialogForSingleAction = true;
+
+    // True for show non accepted actions in menu as disabled, false to hide them.
+    protected boolean mShowNonAcceptedActions = false;
 
     /**
      * Specific type of action which can contain a few other actions, show them as menu items,
@@ -89,7 +94,24 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
      *                                     if there is only single action in a menu.
      */
     public CompositeAction(@StringRes int titleResId, boolean displayDialogForSingleAction, ActionItem... actions) {
-        this(new SimpleTitleProvider<M>(titleResId), displayDialogForSingleAction, actions);
+        this(new SimpleTitleProvider<M>(titleResId), displayDialogForSingleAction, false, actions);
+    }
+
+    /**
+     * Specific type of action which can contain a few other actions, show them as menu items,
+     * and fire an action, if corresponding item clicked.
+     *
+     * @param titleResId                   resource id for corresponding menu item's title
+     * @param actions                      action item, which contains menu item titles and actions,
+     *                                     which will be fired if corresponding menu item selected
+     * @param displayDialogForSingleAction True for show a menu, false for fire action directly
+     *                                     if there is only single action in a menu.
+     * @param showNonAcceptedActions       true for show non accepted actions in menu as disabled,
+     *                                     false to hide them
+     */
+    public CompositeAction(@StringRes int titleResId, boolean displayDialogForSingleAction,
+                           boolean showNonAcceptedActions, ActionItem... actions) {
+        this(new SimpleTitleProvider<M>(titleResId), displayDialogForSingleAction, showNonAcceptedActions, actions);
     }
 
     /**
@@ -101,7 +123,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
      *                   which will be fired if corresponding menu item selected
      */
     public CompositeAction(@StringRes int titleResId, ActionItem... actions) {
-        this(new SimpleTitleProvider<M>(titleResId), actions);
+        this(new SimpleTitleProvider<M>(titleResId), true, false, actions);
     }
 
     /**
@@ -113,7 +135,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
      *                      which will be fired if corresponding menu item selected
      */
     public CompositeAction(TitleProvider<M> titleProvider, ActionItem... actions) {
-        this(titleProvider, true, actions);
+        this(titleProvider, true, false, actions);
     }
 
     /**
@@ -127,10 +149,28 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
      *                                     if there is only single action in a menu.
      */
     public CompositeAction(TitleProvider<M> titleProvider, boolean displayDialogForSingleAction, ActionItem... actions) {
+        this(titleProvider, displayDialogForSingleAction, false, actions);
+    }
+
+    /**
+     * Specific type of action which can contain a few other actions, show them as menu items,
+     * and fire an action, if corresponding item clicked.
+     *
+     * @param titleProvider                provider for corresponding menu item's title
+     * @param actions                      action item, which contains menu item titles and actions,
+     *                                     which will be fired if corresponding menu item selected
+     * @param displayDialogForSingleAction True for show a menu, false for fire action directly
+     *                                     if there is only single action in a menu.
+     * @param showNonAcceptedActions       true for show non accepted actions in menu as disabled,
+     *                                     false to hide them
+     */
+    public CompositeAction(TitleProvider<M> titleProvider, boolean displayDialogForSingleAction,
+                           boolean showNonAcceptedActions, ActionItem... actions) {
         if (actions == null) throw new InvalidParameterException("Provide at least one action");
         mActions = actions;
         mTitleProvider = titleProvider;
         mDisplayDialogForSingleAction = displayDialogForSingleAction;
+        mShowNonAcceptedActions = showNonAcceptedActions;
 
         for (ActionItem item : mActions) {
             if (item.action instanceof BaseAction) {
@@ -152,6 +192,22 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
      */
     public void setShowAsPopupMenuEnabled(boolean showAsPopupMenuEnabled) {
         mShowAsPopupMenuEnabled = showAsPopupMenuEnabled;
+    }
+
+    /**
+     * Flag for settings how a single action item should be fired.
+     * @param displayDialogForSingleAction true for show a menu, false for fire action directly.
+     */
+    public void setDisplayDialogForSingleAction(boolean displayDialogForSingleAction) {
+        mDisplayDialogForSingleAction = displayDialogForSingleAction;
+    }
+
+    /**
+     * Flag for settings how non accepted action item should be showed in the menu.
+     * @param showNonAcceptedActions true for show non accepted actions in menu as disabled, false to hide them.
+     */
+    public void setShowNonAcceptedActions(boolean showNonAcceptedActions) {
+        mShowNonAcceptedActions = showNonAcceptedActions;
     }
 
     /**
@@ -236,10 +292,23 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
             String title = mTitleProvider.getTitle(context, model);
             AlertDialog.Builder builder = buildAlertDialog(context, view, actionType, model, title, menuItems);
             final AlertDialog dialog = builder.create();
+            if (mShowNonAcceptedActions) {
+                final AdapterView.OnItemClickListener clickListener = dialog.getListView().getOnItemClickListener();
+                if (clickListener != null) {
+                    dialog.getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            if (menuItems.get(position).action.isModelAccepted(model)) {
+                                clickListener.onItemClick(parent, view, position, id);
+                            }
+                        }
+                    });
+                }
+            }
             if (title == null) {
                 dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
             }
-            builder.show();
+            dialog.show();
         }
     }
 
@@ -251,6 +320,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
      */
     @NonNull
     protected List<ActionItem> prepareMenuListItems(M model) {
+        if (mShowNonAcceptedActions) return Arrays.asList(mActions);
         int count = mActions.length;
         final List<ActionItem> menuItems = new ArrayList<>(count);
         for (int index = 0; index < count; index++) {
@@ -281,6 +351,9 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
             final ActionItem item = menuItems.get(index);
             //noinspection unchecked
             menu.add(0, index, 0, item.titleProvider.getTitle(context, model));
+            if (mShowNonAcceptedActions) {
+                menu.getItem(index).setEnabled(item.action.isModelAccepted(model));
+            }
         }
         final AtomicBoolean activated = new AtomicBoolean(false);
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -288,7 +361,11 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
             public boolean onMenuItemClick(MenuItem item) {
                 activated.set(true);
                 final ActionItem actionItem = menuItems.get(item.getItemId());
-                fireActionItem(context, view, actionItem.actionType, model, actionItem);
+                if (item.isEnabled()) {
+                    fireActionItem(context, view, actionItem.actionType, model, actionItem);
+                } else {
+                    notifyOnActionDismiss("The model is not accepted for selected action", view, actionType, model);
+                }
                 return true;
             }
         });
@@ -318,11 +395,15 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
         final AlertDialog.Builder builder = new AlertDialog.Builder(context)
                 .setTitle(title);
 
-        builder.setAdapter(new MenuItemsAdapter(getMenuItemLayoutResId(), menuItems, model), new DialogInterface.OnClickListener() {
+        builder.setAdapter(new MenuItemsAdapter(getMenuItemLayoutResId(), menuItems, model, mShowNonAcceptedActions), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 final ActionItem actionItem = menuItems.get(which);
-                fireActionItem(context, view, actionItem.actionType, model, actionItem);
+                if (actionItem.action.isModelAccepted(model)) {
+                    fireActionItem(context, view, actionItem.actionType, model, actionItem);
+                } else {
+                    notifyOnActionDismiss("Model is not acceptable for this action", view, actionType, model);
+                }
             }
         }).setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
@@ -476,12 +557,14 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
         private final int mItemLayoutResId;
         private final List<ActionItem> mItems;
         private final Object mModel;
+        private final boolean mShowNonAcceptedActions;
         private final boolean mHasIcons;
 
-        public MenuItemsAdapter(@LayoutRes int itemLayoutResId, List<ActionItem> menuItems, Object model) {
+        public MenuItemsAdapter(@LayoutRes int itemLayoutResId, List<ActionItem> menuItems, Object model, boolean showNonAcceptedActions) {
             mItemLayoutResId = itemLayoutResId;
             mItems = menuItems;
             mModel = model;
+            mShowNonAcceptedActions = showNonAcceptedActions;
             mHasIcons = checkHasIcons(mItems);
         }
 
@@ -495,30 +578,41 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             Context context = parent.getContext();
+            ViewHolder viewHolder;
             if (convertView == null) {
                 convertView = LayoutInflater.from(context).inflate(mItemLayoutResId, parent, false);
+                viewHolder = new ViewHolder(convertView);
+                convertView.setTag(R.id.viewHolder, viewHolder);
+            } else {
+                viewHolder = (ViewHolder) convertView.getTag(R.id.viewHolder);
             }
 
             ActionItem item = mItems.get(position);
+
+            boolean modelAccepted = true;
+            if (mShowNonAcceptedActions) {
+                modelAccepted = item.action.isModelAccepted(mModel);
+                viewHolder.itemView.setEnabled(modelAccepted);
+            }
             //noinspection unchecked
             final String label = item.titleProvider.getTitle(context, mModel);
-            ((TextView) convertView.findViewById(android.R.id.text1)).setText(label);
-            ImageView imageView = (ImageView) convertView.findViewById(android.R.id.icon);
+            viewHolder.textView.setText(label);
             if (item.iconResId != 0) {
-                imageView.setVisibility(View.VISIBLE);
+                viewHolder.imageView.setVisibility(View.VISIBLE);
 
                 if (item.iconTintColorResId != 0) {
                     final Drawable iconDrawable = ContextCompat.getDrawable(context, item.iconResId);
                     if (iconDrawable != null) {
                         Drawable drawable = DrawableCompat.wrap(iconDrawable.mutate());
                         DrawableCompat.setTint(drawable, ContextCompat.getColor(context, item.iconTintColorResId));
-                        imageView.setImageDrawable(drawable);
+                        viewHolder.imageView.setImageDrawable(drawable);
                     }
                 } else {
-                    imageView.setImageResource(item.iconResId);
+                    viewHolder.imageView.setImageResource(item.iconResId);
                 }
+                if (mShowNonAcceptedActions) viewHolder.imageView.setAlpha(modelAccepted ? 1.0f : 0.3f);
             } else {
-                imageView.setVisibility(mHasIcons ? View.INVISIBLE : View.GONE);
+                viewHolder.imageView.setVisibility(mHasIcons ? View.INVISIBLE : View.GONE);
             }
 
             return convertView;
@@ -542,6 +636,18 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
         @Override
         public long getItemId(int position) {
             return position;
+        }
+
+        private static class ViewHolder {
+            final View itemView;
+            final TextView textView;
+            final ImageView imageView;
+
+            public ViewHolder(View itemView) {
+                this.itemView = itemView;
+                this.textView = (TextView) itemView.findViewById(android.R.id.text1);
+                this.imageView = (ImageView) itemView.findViewById(android.R.id.icon);
+            }
         }
     }
 }
