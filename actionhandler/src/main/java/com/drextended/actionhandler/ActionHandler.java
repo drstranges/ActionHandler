@@ -17,6 +17,7 @@
 package com.drextended.actionhandler;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 
 import com.drextended.actionhandler.action.Action;
@@ -28,11 +29,14 @@ import com.drextended.actionhandler.listener.ActionInterceptor;
 import com.drextended.actionhandler.listener.OnActionDismissListener;
 import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
+import com.drextended.actionhandler.util.DebounceHelper;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -59,6 +63,13 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
     // Callback to be invoked after a view with an action is clicked and before action handling started.
     // Can intercept an action to prevent it to be fired
     private Set<ActionInterceptor> mActionInterceptors;
+
+    // Debounce milliseconds for specific action types (<action type, milliseconds>)
+    private Map<String, Long> mActionDebounceTime;
+
+    private long mDefaultDebounceTime = 0;
+
+    private DebounceHelper mDebounceHelper;
 
     /**
      * @param actions list of actions to handle by this handler
@@ -362,6 +373,11 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
      * @param model      The model, which  appointed to the view and should be handled
      */
     public void fireAction(Context context, View view, String actionType, Object model) {
+        if (!checkDebounceTimeElapsed(actionType)) {
+            Log.d("ActionHandler", "Debounce time not elapsed. Action intercepted!");
+            return;
+        }
+
         if (mActionInterceptors != null) {
             for (ActionInterceptor interceptor : mActionInterceptors) {
                 if (interceptor.onInterceptAction(context, view, actionType, model)) return;
@@ -378,6 +394,25 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
                 }
             }
         }
+    }
+
+    private boolean checkDebounceTimeElapsed(final String actionType) {
+        if (mDefaultDebounceTime > 0 || mActionDebounceTime != null) {
+            if (mDebounceHelper == null) {
+                synchronized (this) {
+                    if (mDebounceHelper == null) {
+                        mDebounceHelper = new DebounceHelper();
+                    }
+                }
+            }
+            Long debounceMillis = mActionDebounceTime.get(actionType);
+            if (debounceMillis == null) {
+                return mDefaultDebounceTime <= 0 || mDebounceHelper.checkTimeAndResetIfElapsed(actionType, mDefaultDebounceTime);
+            } else {
+                return mDebounceHelper.checkTimeAndResetIfElapsed(actionType, debounceMillis);
+            }
+        }
+        return true;
     }
 
     private boolean interceptActionFire(Context context, View view, String actionType, Object model, Action action) {
@@ -419,6 +454,8 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
         private Set<OnActionDismissListener> mActionDismissListeners;
         private Set<ActionInterceptor> mActionInterceptors;
         private Set<ActionFireInterceptor> mActionFireInterceptors;
+        private Map<String, Long> mActionDebounceTime;
+        private long mDefaultDebounceTime = 0;
 
         public Builder() {
             mActions = new ArrayList<>();
@@ -535,8 +572,36 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
             return this;
         }
 
+        /**
+         * Set default debounce time for distinct click actions
+         * @param debounceTimeMillis    the debounce time in milliseconds
+         */
+        public Builder setDefaultDebounce(long debounceTimeMillis) {
+            this.mDefaultDebounceTime = debounceTimeMillis > 0 ? debounceTimeMillis : 0;
+            return this;
+        }
+
+        /**
+         * Set debounce time for defined action types. If set for specific action, overrides default debounce time.
+         * @param debounceTimeMillis    the debounce time in milliseconds
+         * @param actionTypes           the action types to apply debounce
+         */
+        public Builder setDebounce(long debounceTimeMillis, String... actionTypes) {
+            if (actionTypes != null && actionTypes.length > 0) {
+                if (this.mActionDebounceTime == null) {
+                    this.mActionDebounceTime = new HashMap<>();
+                }
+                for (final String actionType : actionTypes) {
+                    this.mActionDebounceTime.put(actionType, debounceTimeMillis);
+                }
+            }
+            return this;
+        }
+
         public ActionHandler build() {
             final ActionHandler actionHandler = new ActionHandler(mActions);
+            actionHandler.mDefaultDebounceTime = this.mDefaultDebounceTime;
+            actionHandler.mActionDebounceTime = this.mActionDebounceTime;
             if (mActionFiredListeners != null) {
                 actionHandler.mOnActionFiredListeners = mActionFiredListeners;
             }

@@ -96,6 +96,8 @@ public class MainActivityViewModel extends BaseViewModel implements OnActionFire
                 .addActionFiredListener(this)
                 .addActionErrorListener(this)
                 .addActionDismissListener(this)
+                .setDefaultDebounce(1000)
+                .setDebounce(2000, ActionType.FIRE_ACTION)
                 .build();
     }
 
