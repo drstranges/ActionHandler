@@ -367,9 +367,13 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
      */
     public static class ActionItem<M> {
         /**
-         * Resource id for the title associated with this item.
+         * Provider for the title associated with this item.
          */
         public final TitleProvider<M> titleProvider;
+        /**
+         * Provider for the icon associated with this item.
+         */
+        public final IconProvider<M> iconProvider;
         /**
          * Action type associated with this item.
          */
@@ -378,14 +382,6 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
          * Action associated with this item.
          */
         public final Action action;
-        /**
-         * Menu icon res id associated with this item.
-         */
-        public final int iconResId;
-        /**
-         * Tint color for menu icon associated with this item.
-         */
-        public final int iconTintColorResId;
 
         /**
          * @param actionType         The action type associated with this item.
@@ -393,7 +389,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
          * @param menuItemTitleResId The resource id for the title associated with this item.
          */
         public ActionItem(String actionType, Action action, @StringRes int menuItemTitleResId) {
-            this(actionType, action, 0, 0, new SimpleTitleProvider<M>(menuItemTitleResId));
+            this(actionType, action, null, new SimpleTitleProvider<M>(menuItemTitleResId));
         }
 
         /**
@@ -403,7 +399,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
          * @param menuItemTitleResId The resource id for the title associated with this item.
          */
         public ActionItem(String actionType, Action action, @DrawableRes int iconResId, @ColorRes int iconTintColorResId, @StringRes int menuItemTitleResId) {
-            this(actionType, action, iconResId, iconTintColorResId, new SimpleTitleProvider<M>(menuItemTitleResId));
+            this(actionType, action, iconResId == 0 ? null : new SimpleIconProvider<M>(iconResId, iconTintColorResId), new SimpleTitleProvider<M>(menuItemTitleResId));
         }
 
         /**
@@ -412,7 +408,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
          * @param titleProvider provider for corresponding menu item's title
          */
         public ActionItem(String actionType, Action action, TitleProvider<M> titleProvider) {
-            this(actionType, action, 0, 0, titleProvider);
+            this(actionType, action, null, titleProvider);
         }
 
         /**
@@ -420,11 +416,20 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
          * @param action             The action associated with this item.
          * @param iconResId          The icon res id associated with this item.
          * @param iconTintColorResId The icon tint color res id for the icon.
-         * @param titleProvider      provider for corresponding menu item's title
+         * @param titleProvider      The provider for corresponding menu item's title
          */
         public ActionItem(String actionType, Action action, @DrawableRes int iconResId, @ColorRes int iconTintColorResId, TitleProvider<M> titleProvider) {
-            this.iconResId = iconResId;
-            this.iconTintColorResId = iconTintColorResId;
+            this(actionType, action, iconResId == 0 ? null : new SimpleIconProvider<M>(iconResId, iconTintColorResId), titleProvider);
+        }
+
+        /**
+         * @param actionType         The action type associated with this item.
+         * @param action             The action associated with this item.
+         * @param iconProvider       The provider for icon associated with this item.
+         * @param titleProvider      The provider for corresponding menu item's title
+         */
+        public ActionItem(String actionType, Action action, IconProvider<M> iconProvider, TitleProvider<M> titleProvider) {
+            this.iconProvider = iconProvider;
             this.actionType = actionType;
             this.action = action;
             this.titleProvider = titleProvider;
@@ -445,6 +450,22 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
          * @return the title, suitable for given model
          */
         String getTitle(Context context, M model);
+    }
+
+    /**
+     * Provide icon drawable
+     *
+     * @param <M>
+     */
+    public interface IconProvider<M> {
+        /**
+         * Provide icon drawable
+         *
+         * @param context The Context
+         * @param model   The model, which should be handled
+         * @return the icon drawable, suitable for given item
+         */
+        Drawable getIconDrawable(Context context, M model);
     }
 
     /**
@@ -472,6 +493,47 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
         }
     }
 
+    /**
+     * Simple icon provider which give just static icon
+     *
+     * @param <M>
+     */
+    public static class SimpleIconProvider<M> implements IconProvider<M> {
+
+        /**
+         * Resource id for the icon.
+         */
+        private final int mIconResId;
+
+        /**
+         * Resource id for icon's tint color.
+         */
+        private final int mIconTintResId;
+
+        /**
+         * @param iconResId Resource id for the icon.
+         */
+        public SimpleIconProvider(int iconResId, int iconTintResId) {
+            mIconResId = iconResId;
+            mIconTintResId = iconTintResId;
+        }
+
+        @Override
+        public Drawable getIconDrawable(Context context, M model) {
+            if (mIconResId != 0) {
+                Drawable drawable = ContextCompat.getDrawable(context, mIconResId);
+                if (drawable != null) {
+                    drawable = DrawableCompat.wrap(drawable.mutate());
+                    if (mIconTintResId != 0) {
+                        DrawableCompat.setTint(drawable, ContextCompat.getColor(context, mIconTintResId));
+                    }
+                }
+                return drawable;
+            }
+            return null;
+        }
+    }
+
     private static class MenuItemsAdapter extends BaseAdapter {
         private final int mItemLayoutResId;
         private final List<ActionItem> mItems;
@@ -487,7 +549,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
 
         private boolean checkHasIcons(List<ActionItem> items) {
             for (final ActionItem item : items) {
-                if (item.iconResId != 0) return true;
+                if (item.iconProvider != null) return true;
             }
             return false;
         }
@@ -504,19 +566,11 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
             final String label = item.titleProvider.getTitle(context, mModel);
             ((TextView) convertView.findViewById(android.R.id.text1)).setText(label);
             ImageView imageView = (ImageView) convertView.findViewById(android.R.id.icon);
-            if (item.iconResId != 0) {
-                imageView.setVisibility(View.VISIBLE);
-
-                if (item.iconTintColorResId != 0) {
-                    final Drawable iconDrawable = ContextCompat.getDrawable(context, item.iconResId);
-                    if (iconDrawable != null) {
-                        Drawable drawable = DrawableCompat.wrap(iconDrawable.mutate());
-                        DrawableCompat.setTint(drawable, ContextCompat.getColor(context, item.iconTintColorResId));
-                        imageView.setImageDrawable(drawable);
-                    }
-                } else {
-                    imageView.setImageResource(item.iconResId);
-                }
+            if (item.iconProvider != null) {
+                //noinspection unchecked
+                Drawable icon = item.iconProvider.getIconDrawable(context, mModel);
+                imageView.setVisibility(icon != null ? View.VISIBLE : View.GONE);
+                imageView.setImageDrawable(icon);
             } else {
                 imageView.setVisibility(mHasIcons ? View.INVISIBLE : View.GONE);
             }
