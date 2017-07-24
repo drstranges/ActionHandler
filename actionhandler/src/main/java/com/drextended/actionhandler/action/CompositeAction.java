@@ -664,16 +664,16 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
                 //noinspection unchecked
                 Drawable icon = item.iconProvider.getIconDrawable(context, mModel);
                 if (icon != null) {
-                    imageView.setVisibility(View.VISIBLE);
-                    imageView.setImageDrawable(icon);
+                    viewHolder.imageView.setVisibility(View.VISIBLE);
+                    viewHolder.imageView.setImageDrawable(icon);
                     if (mShowNonAcceptedActions) {
                         viewHolder.imageView.setAlpha(modelAccepted ? 1.0f : 0.3f);
                     }
                 } else {
-                    imageView.setVisibility(mHasIcons ? View.INVISIBLE : View.GONE);
+                    viewHolder.imageView.setVisibility(mHasIcons ? View.INVISIBLE : View.GONE);
                 }
             } else {
-                imageView.setVisibility(mHasIcons ? View.INVISIBLE : View.GONE);
+                viewHolder.imageView.setVisibility(mHasIcons ? View.INVISIBLE : View.GONE);
             }
 
             return convertView;
