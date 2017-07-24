@@ -29,7 +29,7 @@ public class DebounceHelper {
     private final ReentrantReadWriteLock mLock = new ReentrantReadWriteLock();
 
     /**
-     * Check if time {@param debounceMillis} elapsed since last timer reset by call {@link #resetTime}
+     * Check if time "debounceMillis" elapsed since last timer reset by call {@link #resetTime}
      * or {@link #checkTimeAndResetIfElapsed(String, long)}
      *
      * @param tag            the tag
@@ -57,7 +57,7 @@ public class DebounceHelper {
     }
 
     /**
-     * Check if time {@param debounceMillis} elapsed since last timer reset by call {@link #resetTime}
+     * Check if time "debounceMillis" elapsed since last timer reset by call {@link #resetTime}
      * or {@link #checkTimeAndResetIfElapsed(String, long)}
      *
      * @param tag            the tag
