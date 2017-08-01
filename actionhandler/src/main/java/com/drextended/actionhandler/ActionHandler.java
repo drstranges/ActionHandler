@@ -405,12 +405,9 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
                     }
                 }
             }
-            Long debounceMillis = mActionDebounceTime.get(actionType);
-            if (debounceMillis == null) {
-                return mDefaultDebounceTime <= 0 || mDebounceHelper.checkTimeAndResetIfElapsed(actionType, mDefaultDebounceTime);
-            } else {
-                return mDebounceHelper.checkTimeAndResetIfElapsed(actionType, debounceMillis);
-            }
+            Long debounceMillis = mActionDebounceTime == null ? null : mActionDebounceTime.get(actionType);
+            if (debounceMillis == null) debounceMillis = mDefaultDebounceTime;
+            return debounceMillis <= 0 || mDebounceHelper.checkTimeAndResetIfElapsed(actionType, debounceMillis);
         }
         return true;
     }
