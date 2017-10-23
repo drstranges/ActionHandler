@@ -44,7 +44,7 @@ public class SampleRequestAction extends RequestAction<String, String> {
     }
 
     @Override
-    protected void onMakeRequest(final Context context, final View view, final String actionType, final String model) {
+    protected void onMakeRequest(final Context context, final View view, final String actionType, final String model, Object payload) {
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override

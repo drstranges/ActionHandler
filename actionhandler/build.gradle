@@ -2,8 +2,8 @@ apply plugin: 'com.android.library'
 
 ext {
     libraryVersionMajor = 1
-    libraryVersionMinor = 1
-    libraryVersionRevision = 5
+    libraryVersionMinor = 2
+    libraryVersionRevision = 0
 
     libraryVersion = libraryVersionMajor + '.' + libraryVersionMinor + '.' + libraryVersionRevision
 
@@ -62,8 +62,8 @@ dependencies {
 //    provided 'com.android.support:support-compat:24.2.1'
 //    compile 'com.android.support:support-v4:25.3.1'
     compile 'com.android.support:appcompat-v7:25.3.1'
-    provided 'io.reactivex:rxjava:1.2.1'
-    provided 'io.reactivex:rxandroid:1.2.1'
+    provided 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    provided 'io.reactivex.rxjava2:rxjava:2.1.5'
 
 }
 

@@ -47,6 +47,7 @@ public class Converters {
      * @param actionType          The action type, which will be handled on view clicked
      * @param actionTypeLongClick The action type, which will be handled on view long clicked
      * @param model               The model which will be handled
+     * @param modelLongClick      The model which will be handled for long click. If null, {@code model} will be used
      */
     @BindingAdapter(
             value = {"actionHandler", "actionType", "actionTypeLongClick", "model", "modelLongClick"},

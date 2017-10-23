@@ -436,6 +436,9 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
 
     /**
      * Null-safe equivalent of {@code a.equals(b)}.
+     * @param a the first object
+     * @param b the second object
+     * @return true if a equals b
      */
     public static boolean equals(Object a, Object b) {
         return (a == null) ? (b == null) : a.equals(b);
@@ -463,7 +466,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
          *
          * @param actionType The type of action
          * @param action     The action
-         * @return
+         * @return the builder
          */
         public Builder addAction(String actionType, Action action) {
             mActions.add(new ActionPair(actionType, action));
@@ -476,6 +479,8 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
          * You should call {@link BaseAction#notifyOnActionFired(View, String, Object)} to invoke this callback.
          *
          * @param actionFiredListener new callback to be invoked when an action is executed successfully
+         * @return the builder
+         *
          * @deprecated use {@link #addActionFiredListener(OnActionFiredListener)} instead
          */
         @Deprecated
@@ -490,6 +495,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
          * You should call {@link BaseAction#notifyOnActionFired(View, String, Object)} to invoke this callback.
          *
          * @param actionFiredListener new callback to be invoked when an action is executed successfully
+         * @return the builder
          */
         public Builder addActionFiredListener(final OnActionFiredListener actionFiredListener) {
             if (mActionFiredListeners == null) {
@@ -505,6 +511,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
          * You should call {@link BaseAction#notifyOnActionError(Throwable, View, String, Object)} to invoke this callback.
          *
          * @param actionErrorListener new callback to be invoked when an action is executed successfully
+         * @return the builder
          */
         public Builder addActionErrorListener(final OnActionErrorListener actionErrorListener) {
             if (mActionErrorListeners == null) {
@@ -520,6 +527,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
          * You should call {@link BaseAction#notifyOnActionDismiss(String, View, String, Object)} to invoke this callback.
          *
          * @param listener new callback to be invoked when an action was dismissed
+         * @return the builder
          */
         public Builder addActionDismissListener(final OnActionDismissListener listener) {
             if (mActionDismissListeners == null) {
@@ -534,6 +542,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
          * Can intercept an action to prevent it to be fired
          *
          * @param actionInterceptor The interceptor, which can prevent actions to be fired
+         * @return the builder
          * @deprecated use {@link #addActionInterceptor(ActionInterceptor)} instead
          */
         public Builder setActionInterceptor(ActionInterceptor actionInterceptor) {
@@ -546,6 +555,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
          * Can intercept an action type to prevent it to be handled
          *
          * @param actionInterceptor The interceptor, which can prevent actions to be fired
+         * @return the builder
          */
         public Builder addActionInterceptor(ActionInterceptor actionInterceptor) {
             if (mActionInterceptors == null) {
@@ -560,6 +570,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
          * Can intercept an action to prevent it to be fired
          *
          * @param actionFireInterceptor The interceptor, which can prevent actions to be fired
+         * @return the builder
          */
         public Builder addActionFireInterceptor(ActionFireInterceptor actionFireInterceptor) {
             if (mActionFireInterceptors == null) {
@@ -572,6 +583,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
         /**
          * Set default debounce time for distinct click actions
          * @param debounceTimeMillis    the debounce time in milliseconds
+         * @return the builder
          */
         public Builder setDefaultDebounce(long debounceTimeMillis) {
             this.mDefaultDebounceTime = debounceTimeMillis > 0 ? debounceTimeMillis : 0;

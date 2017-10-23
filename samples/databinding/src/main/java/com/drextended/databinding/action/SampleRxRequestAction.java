@@ -26,8 +26,9 @@ import com.drextended.databinding.R;
 
 import java.util.concurrent.TimeUnit;
 
-import rx.Observable;
-import rx.functions.Func1;
+import io.reactivex.Single;
+import io.reactivex.SingleSource;
+import io.reactivex.functions.Function;
 
 public class SampleRxRequestAction extends RxRequestAction<String, String> {
 
@@ -39,16 +40,17 @@ public class SampleRxRequestAction extends RxRequestAction<String, String> {
 
     @Nullable
     @Override
-    protected Observable<String> getRequest(Context context, View view, String actionType, String model) {
+    protected Single<String> getRequest(Context context, View view, String actionType, String model, Object payload) {
         if (mCount++ % 3 == 0) {
-            return Observable.just("").delay(2000, TimeUnit.MILLISECONDS).flatMap(new Func1<String, Observable<String>>() {
+            return Single.just("").delay(2000, TimeUnit.MILLISECONDS).flatMap(new Function<String, SingleSource<? extends String>>() {
+
                 @Override
-                public Observable<String> call(String s) {
-                    return Observable.error(new Throwable("Request has failed"));
+                public SingleSource<? extends String> apply(String s) throws Exception {
+                    return Single.error(new Throwable("Request has failed"));
                 }
             });
         } else {
-            return Observable.just("Request has been done successfully").delay(2000, TimeUnit.MILLISECONDS);
+            return Single.just("Request has been done successfully").delay(2000, TimeUnit.MILLISECONDS);
         }
     }
 

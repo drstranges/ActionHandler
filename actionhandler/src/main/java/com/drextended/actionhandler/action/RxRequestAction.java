@@ -23,12 +23,14 @@ import android.view.View;
 
 import com.drextended.actionhandler.ActionHandler;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.Single;
+import io.reactivex.SingleSource;
+import io.reactivex.SingleTransformer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.observers.DisposableSingleObserver;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * Base action for implementing call a network request with RxJava Observable (ex. using Retrofit + RxJava)
@@ -37,7 +39,7 @@ import rx.subscriptions.CompositeSubscription;
  * @param <M>  The type of model which can be handled
  */
 public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implements Cancelable {
-    protected CompositeSubscription mSubscription;
+    protected CompositeDisposable mDisposable;
     protected boolean mUnsubscribeOnNewRequest = true;
 
     public RxRequestAction() {
@@ -54,22 +56,23 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
 
     @Override
     protected void onMakeRequest(final Context context, final View view, final String actionType, final M model, Object payload) {
-        final Observable<RM> observableRequest = getRequest(context, view, actionType, model, payload);
+        final Single<RM> observableRequest = getRequest(context, view, actionType, model, payload);
         if (observableRequest == null) {
             if (mShowProgressEnabled) hideProgressDialog();
             return;
         }
         if (mUnsubscribeOnNewRequest) {
-            unsubscribe(mSubscription);
+            dispose(mDisposable);
         }
-        if (mSubscription == null || mSubscription.isUnsubscribed()) {
-            mSubscription = new CompositeSubscription();
+        if (mDisposable == null || mDisposable.isDisposed()) {
+            mDisposable = new CompositeDisposable();
         }
-        mSubscription.add(observableRequest
+        mDisposable.add(observableRequest
                 .compose(applySchedulers())
-                .subscribe(new Subscriber<RM>() {
+                .subscribeWith(new DisposableSingleObserver<RM>() {
                     @Override
-                    public void onCompleted() {
+                    public void onSuccess(RM response) {
+                        onResponseSuccess(context, view, actionType, model, response);
                         onResponseCompleted(context, view, actionType, model);
                     }
 
@@ -77,38 +80,33 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
                     public void onError(Throwable e) {
                         onResponseError(context, view, actionType, model, e);
                     }
-
-                    @Override
-                    public void onNext(RM response) {
-                        onResponseSuccess(context, view, actionType, model, response);
-                    }
                 }));
     }
 
     /**
-     * Override this method if you want to apply custom schedulers for request observable.
+     * Override this method if you want to apply custom schedulers for request flow.
      * By default {@code Schedulers.io()} applied for subscribeOn,
      * and {@code AndroidSchedulers.mainThread()} for observeOn.
      * @return transformer for apply schedulers
      */
     @NonNull
-    protected Observable.Transformer<RM, RM> applySchedulers() {
-        return new Observable.Transformer<RM, RM>() {
+    protected SingleTransformer<RM, RM> applySchedulers() {
+        return new SingleTransformer<RM, RM>() {
             @Override
-            public Observable<RM> call(Observable<RM> r) {
-                return r.subscribeOn(Schedulers.io())
+            public SingleSource<RM> apply(Single<RM> upstream) {
+                return upstream.subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread());
             }
         };
     }
 
     /**
-     * Helper method to unsubscribe from subscription
+     * Helper method to dispose the call
      *
-     * @param subscription subscription to unsubscribe
+     * @param disposable disposable to dispose
      */
-    protected void unsubscribe(Subscription subscription) {
-        if (subscription != null && !subscription.isUnsubscribed()) subscription.unsubscribe();
+    protected void dispose(Disposable disposable) {
+        if (disposable != null && !disposable.isDisposed()) disposable.dispose();
     }
 
     /**
@@ -118,27 +116,7 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
      */
     @Override
     public void cancel() {
-        unsubscribe(mSubscription);
-    }
-
-    /**
-     * Implement network request observable there.
-     * By default {@code Schedulers.io()} applied for subscribeOn,
-     * and {@code AndroidSchedulers.mainThread()} for observeOn. If you want to apply custom schedulers
-     * override {@link #applySchedulers()}
-     *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param actionType Type of the action which was executed.
-     * @param model      The model which was used in request.
-     * @return request observable.
-     * @deprecated use {@link #getRequest(Context, View, String, Object, Object)}
-     */
-    @Deprecated
-    @Nullable
-    protected Observable<RM> getRequest(Context context, View view, String actionType, M model) {
-        return null;
+        dispose(mDisposable);
     }
 
     /**
@@ -155,9 +133,7 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
      * @return request observable.
      */
     @Nullable
-    protected Observable<RM> getRequest(Context context, View view, String actionType, M model, @Nullable Object payload) {
-        return getRequest(context, view, actionType, model);
-    }
+    protected abstract Single<RM> getRequest(Context context, View view, String actionType, M model, @Nullable Object payload);
 
     /**
      * Called when request observable emits "onComplete" event.
