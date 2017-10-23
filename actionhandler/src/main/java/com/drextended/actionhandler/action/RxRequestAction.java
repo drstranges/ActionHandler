@@ -23,13 +23,13 @@ import android.view.View;
 
 import com.drextended.actionhandler.ActionHandler;
 
-import io.reactivex.Single;
-import io.reactivex.SingleSource;
-import io.reactivex.SingleTransformer;
+import io.reactivex.Maybe;
+import io.reactivex.MaybeSource;
+import io.reactivex.MaybeTransformer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.observers.DisposableSingleObserver;
+import io.reactivex.observers.DisposableMaybeObserver;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -39,7 +39,6 @@ import io.reactivex.schedulers.Schedulers;
  * @param <M>  The type of model which can be handled
  */
 public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implements Cancelable {
-    public static final Object NO_RESULT = new Object();
 
     protected CompositeDisposable mDisposable;
     protected boolean mUnsubscribeOnNewRequest = true;
@@ -58,7 +57,7 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
 
     @Override
     protected void onMakeRequest(final Context context, final View view, final String actionType, final M model, Object payload) {
-        final Single<RM> observableRequest = getRequest(context, view, actionType, model, payload);
+        final Maybe<RM> observableRequest = getRequest(context, view, actionType, model, payload);
         if (observableRequest == null) {
             if (mShowProgressEnabled) hideProgressDialog();
             return;
@@ -71,15 +70,25 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
         }
         mDisposable.add(observableRequest
                 .compose(applySchedulers())
-                .subscribeWith(new DisposableSingleObserver<RM>() {
+                .subscribeWith(new DisposableMaybeObserver<RM>() {
+                    private volatile boolean hasResponse = false;
+
                     @Override
                     public void onSuccess(RM response) {
+                        hasResponse = true;
                         onResponseSuccess(context, view, actionType, model, response);
                     }
 
                     @Override
                     public void onError(Throwable e) {
                         onResponseError(context, view, actionType, model, e);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        if (!hasResponse) {
+                            onResponseSuccess(context, view, actionType, model, null);
+                        }
                     }
                 }));
     }
@@ -91,10 +100,10 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
      * @return transformer for apply schedulers
      */
     @NonNull
-    protected SingleTransformer<RM, RM> applySchedulers() {
-        return new SingleTransformer<RM, RM>() {
+    protected MaybeTransformer<RM, RM> applySchedulers() {
+        return new MaybeTransformer<RM, RM>() {
             @Override
-            public SingleSource<RM> apply(Single<RM> upstream) {
+            public MaybeSource<RM> apply(Maybe<RM> upstream) {
                 return upstream.subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread());
             }
@@ -134,6 +143,6 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
      * @return request observable.
      */
     @Nullable
-    protected abstract Single<RM> getRequest(Context context, View view, String actionType, M model, @Nullable Object payload);
+    protected abstract Maybe<RM> getRequest(Context context, View view, String actionType, M model, @Nullable Object payload);
 
 }

@@ -26,8 +26,8 @@ import com.drextended.databinding.R;
 
 import java.util.concurrent.TimeUnit;
 
-import io.reactivex.Single;
-import io.reactivex.SingleSource;
+import io.reactivex.Maybe;
+import io.reactivex.MaybeSource;
 import io.reactivex.functions.Function;
 
 public class SampleRxRequestAction extends RxRequestAction<String, String> {
@@ -40,17 +40,17 @@ public class SampleRxRequestAction extends RxRequestAction<String, String> {
 
     @Nullable
     @Override
-    protected Single<String> getRequest(Context context, View view, String actionType, String model, Object payload) {
+    protected Maybe<String> getRequest(Context context, View view, String actionType, String model, Object payload) {
         if (mCount++ % 3 == 0) {
-            return Single.just("").delay(2000, TimeUnit.MILLISECONDS).flatMap(new Function<String, SingleSource<? extends String>>() {
+            return Maybe.just("").delay(2000, TimeUnit.MILLISECONDS).flatMap(new Function<String, MaybeSource<? extends String>>() {
 
                 @Override
-                public SingleSource<? extends String> apply(String s) throws Exception {
-                    return Single.error(new Throwable("Request has failed"));
+                public MaybeSource<? extends String> apply(String s) throws Exception {
+                    return Maybe.error(new Throwable("Request has failed"));
                 }
             });
         } else {
-            return Single.just("Request has been done successfully").delay(2000, TimeUnit.MILLISECONDS);
+            return Maybe.just("Request has been done successfully").delay(2000, TimeUnit.MILLISECONDS);
         }
     }
 
