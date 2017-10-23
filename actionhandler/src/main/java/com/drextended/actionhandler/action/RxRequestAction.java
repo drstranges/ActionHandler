@@ -39,6 +39,8 @@ import io.reactivex.schedulers.Schedulers;
  * @param <M>  The type of model which can be handled
  */
 public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implements Cancelable {
+    public static final Object NO_RESULT = new Object();
+
     protected CompositeDisposable mDisposable;
     protected boolean mUnsubscribeOnNewRequest = true;
 
@@ -73,7 +75,6 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
                     @Override
                     public void onSuccess(RM response) {
                         onResponseSuccess(context, view, actionType, model, response);
-                        onResponseCompleted(context, view, actionType, model);
                     }
 
                     @Override
@@ -135,35 +136,4 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
     @Nullable
     protected abstract Single<RM> getRequest(Context context, View view, String actionType, M model, @Nullable Object payload);
 
-    /**
-     * Called when request observable emits "onComplete" event.
-     * Hides progress dialog if enabled
-     *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param actionType Type of the action which was executed.
-     * @param oldModel   The model which was used in request.
-     */
-    protected void onResponseCompleted(Context context, View view, String actionType, M oldModel) {
-        if (mShowProgressEnabled) hideProgressDialog();
-    }
-
-    /**
-     * Called on request observable emits "onNext" event.
-     * Overrides super, so that does not hide progress dialog but calls {@link #notifyOnActionFired} here.
-     * See {@link #onResponseCompleted(Context, View, String, Object)} for that.
-     *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param actionType Type of the action which was executed.
-     * @param oldModel   The model which was used in request.
-     * @param response   network response
-     */
-    @Override
-    protected void onResponseSuccess(Context context, View view, String actionType, M oldModel, RM response) {
-//        super.onResponseSuccess(context, view, actionType, oldModel, response);
-        notifyOnActionFired(view, actionType, oldModel, response);
-    }
 }
