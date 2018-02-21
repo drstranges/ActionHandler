@@ -16,7 +16,7 @@ repositories {
 }
 dependencies {
     //compile 'com.drextended.actionhandler:actionhandler:1.2.0' // <= compiled with android.databinding.enableV2=false
-    compile 'com.drextended.actionhandler:actionhandler:2.0.0' // <= compiled with android.databinding.enableV2=true
+    compile 'com.drextended.actionhandler:actionhandler:2.0.1' // <= compiled with android.databinding.enableV2=true
 }
 ```
 
