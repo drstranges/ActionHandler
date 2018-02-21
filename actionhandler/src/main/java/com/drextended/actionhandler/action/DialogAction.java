@@ -32,6 +32,7 @@ import com.drextended.actionhandler.listener.OnActionFiredListener;
  *
  * @param <M>    type of model to handle
  */
+@SuppressWarnings("SameParameterValue")
 public abstract class DialogAction<M> extends BaseAction<M> {
 
     @Override

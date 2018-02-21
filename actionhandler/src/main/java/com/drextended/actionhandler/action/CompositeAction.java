@@ -60,6 +60,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @param <M>
  */
+@SuppressWarnings("SameParameterValue")
 public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredListener, OnActionErrorListener, OnActionDismissListener, ActionFireInterceptor {
 
     /**

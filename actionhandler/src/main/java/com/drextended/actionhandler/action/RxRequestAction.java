@@ -38,6 +38,7 @@ import io.reactivex.schedulers.Schedulers;
  * @param <RM> The type of network response
  * @param <M>  The type of model which can be handled
  */
+@SuppressWarnings("SameParameterValue")
 public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implements Cancelable {
 
     protected CompositeDisposable mDisposable;

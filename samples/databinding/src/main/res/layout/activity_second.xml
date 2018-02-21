@@ -35,5 +35,6 @@
         android:text="@string/second_activity"
         android:padding="16dp"
         android:background="@color/colorAccent"
-        android:transitionName="transition_name"/>
+        android:transitionName="transition_name"
+        tools:ignore="UnusedAttribute" />
 </FrameLayout>

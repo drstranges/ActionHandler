@@ -28,6 +28,7 @@ import com.drextended.databinding.viewmodel.MainActivityViewModel;
 public class MainActivity extends AppCompatActivity implements MainActivityViewModel.Callback {
 
     private MainActivityViewModel mViewModel;
+    @SuppressWarnings("FieldCanBeLocal")
     private ActivityMainBinding mBinding;
 
     @Override

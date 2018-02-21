@@ -28,7 +28,9 @@
         android:layout_gravity="center_vertical"
         android:layout_marginLeft="24dp"
         android:duplicateParentState="true"
-        tools:src="@android:drawable/ic_menu_edit"/>
+        tools:src="@android:drawable/ic_menu_edit"
+        tools:ignore="ContentDescription"
+        android:layout_marginStart="24dp" />
 
     <TextView
         android:id="@android:id/text1"
@@ -42,5 +44,8 @@
         android:paddingRight="?attr/listPreferredItemPaddingRight"
         android:textAppearance="?attr/textAppearanceListItemSmall"
         android:textColor="?attr/textColorAlertDialogListItem"
-        tools:text="Menu item label"/>
+        tools:text="Menu item label"
+        android:layout_marginStart="24dp"
+        android:paddingEnd="?attr/listPreferredItemPaddingRight"
+        tools:ignore="RtlSymmetry" />
 </LinearLayout>

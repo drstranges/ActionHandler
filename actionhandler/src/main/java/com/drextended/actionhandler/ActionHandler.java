@@ -42,6 +42,7 @@ import java.util.Set;
 /**
  * Use ActionHandler to manage action and bind them to view
  */
+@SuppressWarnings("WeakerAccess")
 public class ActionHandler implements ActionClickListener, OnActionFiredListener, OnActionErrorListener, OnActionDismissListener, ActionFireInterceptor {
 
     // Actions which was added to the handler
@@ -447,6 +448,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
     /**
      * The Builder for configure action handler
      */
+    @SuppressWarnings("SameParameterValue")
     public static final class Builder {
         private List<ActionPair> mActions;
         private Set<OnActionFiredListener> mActionFiredListeners;
