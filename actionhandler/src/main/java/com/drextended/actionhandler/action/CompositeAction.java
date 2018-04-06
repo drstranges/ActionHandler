@@ -58,7 +58,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Show in a menu only actions, which is accepted (checked by {@link Action#isModelAccepted(Object)}).
  * Menu can be displayed as popup menu or as single choice list in an alert dialog
  *
- * @param <M>
+ * @param <M> model type
  */
 @SuppressWarnings("SameParameterValue")
 public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredListener, OnActionErrorListener, OnActionDismissListener, ActionFireInterceptor {
@@ -389,6 +389,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
      *                   Generally it is that view which was clicked and initiated action to fire.
      * @param actionType The action type
      * @param model      The model which should be handled by the action.
+     * @param title      The title of the dialog.
      * @param menuItems  list of items which will be shown in a menu
      * @return alert dialog builder to show given menu items
      */
@@ -478,6 +479,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
          * @param actionType         The action type associated with this item.
          * @param action             The action associated with this item.
          * @param iconResId          The icon res id associated with this item.
+         * @param iconTintColorResId The icon tint color res id associated with this item.
          * @param menuItemTitleResId The resource id for the title associated with this item.
          */
         public ActionItem(String actionType, Action action, @DrawableRes int iconResId, @ColorRes int iconTintColorResId, @StringRes int menuItemTitleResId) {
@@ -521,7 +523,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
     /**
      * Provide adjustable title
      *
-     * @param <M>
+     * @param <M> model type
      */
     public interface TitleProvider<M> {
         /**
@@ -537,7 +539,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
     /**
      * Provide icon drawable
      *
-     * @param <M>
+     * @param <M> model type
      */
     public interface IconProvider<M> {
         /**
@@ -553,7 +555,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
     /**
      * Simple title provider which give just static title
      *
-     * @param <M>
+     * @param <M> model type
      */
     public static class SimpleTitleProvider<M> implements TitleProvider<M> {
 
@@ -578,7 +580,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
     /**
      * Simple icon provider which give just static icon
      *
-     * @param <M>
+     * @param <M> model type
      */
     public static class SimpleIconProvider<M> implements IconProvider<M> {
 
@@ -593,7 +595,8 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
         private final int mIconTintResId;
 
         /**
-         * @param iconResId Resource id for the icon.
+         * @param iconResId     Resource id for the icon.
+         * @param iconTintResId Resource id for tint color for the icon.
          */
         public SimpleIconProvider(int iconResId, int iconTintResId) {
             mIconResId = iconResId;

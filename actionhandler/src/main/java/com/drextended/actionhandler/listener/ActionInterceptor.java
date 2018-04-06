@@ -30,7 +30,7 @@ public interface ActionInterceptor {
      * and before action handling started. If return true then this action will not be handled.
      *
      *
-     * @param context
+     * @param context    The context
      * @param view       The view that was clicked.
      * @param actionType The action type, which appointed to the view
      * @param model      The model, which  appointed to the view and should be handled

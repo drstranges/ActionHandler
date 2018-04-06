@@ -596,6 +596,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
          * Set debounce time for defined action types. If set for specific action, overrides default debounce time.
          * @param debounceTimeMillis    the debounce time in milliseconds
          * @param actionTypes           the action types to apply debounce
+         * @return                      the builder
          */
         public Builder setDebounce(long debounceTimeMillis, String... actionTypes) {
             if (actionTypes != null && actionTypes.length > 0) {

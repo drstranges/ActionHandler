@@ -103,6 +103,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      *                   Generally it is that view which was clicked and initiated action to fire
      * @param actionType Type of the action which was executed. Can be null.
      * @param model      The model which should be handled by the action. Can be null.
+     * @param payload    The payload from {@link #onFireAction}.
      */
     public void makeRequest(Context context, View view, String actionType, final M model, @Nullable Object payload) {
         onRequestStarted(context, view, actionType, model, payload);
@@ -129,6 +130,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      *                   Generally it is that view which was clicked and initiated action to fire
      * @param actionType Type of the action which was executed. Can be null.
      * @param model      The model which should be handled by the action. Can be null.
+     * @param payload    The payload from {@link #makeRequest(Context, View, String, Object, Object)}.
      */
     protected void onRequestStarted(Context context, View view, String actionType, M model, @Nullable Object payload) {
         if (mShowProgressEnabled) showProgressDialog(context, view, actionType, model);
@@ -213,6 +215,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      *                   Generally it is that view which was clicked and initiated action to fire
      * @param actionType Type of the action which was executed.
      * @param model      The model which was used in request.
+     * @param payload    The payload from {@link #makeRequest(Context, View, String, Object, Object)}.
      */
     protected abstract void onMakeRequest(Context context, View view, String actionType, final M model, @Nullable Object payload);
 

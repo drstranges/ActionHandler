@@ -141,6 +141,7 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
      *                   Generally it is that view which was clicked and initiated action to fire
      * @param actionType Type of the action which was executed.
      * @param model      The model which was used in request.
+     * @param payload    The payload from {@link #makeRequest(Context, View, String, Object, Object)}.
      * @return request observable.
      */
     @Nullable

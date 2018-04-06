@@ -40,12 +40,12 @@
         android:ellipsize="marquee"
         android:gravity="center_vertical"
         android:duplicateParentState="true"
-        android:minHeight="?attr/listPreferredItemHeightSmall"
-        android:paddingRight="?attr/listPreferredItemPaddingRight"
-        android:textAppearance="?attr/textAppearanceListItemSmall"
-        android:textColor="?attr/textColorAlertDialogListItem"
+        android:minHeight="?android:attr/listPreferredItemHeightSmall"
+        android:paddingRight="?android:attr/listPreferredItemPaddingRight"
+        android:textAppearance="?android:attr/textAppearanceListItemSmall"
+        android:textColor="?android:attr/textColorAlertDialogListItem"
         tools:text="Menu item label"
         android:layout_marginStart="24dp"
-        android:paddingEnd="?attr/listPreferredItemPaddingRight"
+        android:paddingEnd="?android:attr/listPreferredItemPaddingRight"
         tools:ignore="RtlSymmetry" />
 </LinearLayout>
