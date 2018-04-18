@@ -621,6 +621,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
          * One method for adding all listeners and interceptors.
          *
          * @param actionCallback The action callback
+         * @return the builder
          */
         public Builder addCallback(ActionCallback actionCallback) {
             addActionInterceptor(actionCallback);
