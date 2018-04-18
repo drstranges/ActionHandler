@@ -23,6 +23,9 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
 
+import com.drextended.actionhandler.listener.ActionFireInterceptor;
+import com.drextended.actionhandler.listener.OnActionDismissListener;
+import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
 
 /**
@@ -169,7 +172,7 @@ public abstract class DialogAction<M> extends BaseAction<M> {
      *
      * @param <M>
      */
-    private static class DialogActionWrapper<M> extends DialogAction<M> implements OnActionFiredListener {
+    private static class DialogActionWrapper<M> extends DialogAction<M> {
         private final Action<M> mAction;
         private final String mDialogMessage;
 
@@ -183,9 +186,6 @@ public abstract class DialogAction<M> extends BaseAction<M> {
             super();
             mAction = action;
             mDialogMessage = dialogMessage;
-            if (mAction instanceof BaseAction) {
-                ((BaseAction) mAction).addActionFiredListener(this);
-            }
         }
 
         @Override
@@ -204,8 +204,107 @@ public abstract class DialogAction<M> extends BaseAction<M> {
         }
 
         @Override
-        public void onActionFired(View view, String actionType, Object model, Object result) {
-            notifyOnActionFired(view, actionType, model, result);
+        public void addActionFiredListener(OnActionFiredListener listener) {
+            super.addActionFiredListener(listener);
+            if (mAction instanceof BaseAction) {
+                ((BaseAction) mAction).addActionFiredListener(listener);
+            }
+        }
+
+        @Override
+        public void addActionErrorListener(OnActionErrorListener listener) {
+            super.addActionErrorListener(listener);
+            if (mAction instanceof BaseAction) {
+                ((BaseAction) mAction).addActionErrorListener(listener);
+            }
+        }
+
+        @Override
+        public void addActionDismissListener(OnActionDismissListener listener) {
+            super.addActionDismissListener(listener);
+            if (mAction instanceof BaseAction) {
+                ((BaseAction) mAction).addActionDismissListener(listener);
+            }
+        }
+
+        @Override
+        public void addActionFireInterceptor(ActionFireInterceptor interceptor) {
+            super.addActionFireInterceptor(interceptor);
+            if (mAction instanceof BaseAction) {
+                ((BaseAction) mAction).addActionFireInterceptor(interceptor);
+            }
+        }
+
+        @Override
+        public void removeActionFireListener(OnActionFiredListener listener) {
+            super.removeActionFireListener(listener);
+            if (mAction instanceof BaseAction) {
+                ((BaseAction) mAction).removeActionFireListener(listener);
+            }
+        }
+
+        @Override
+        public void removeAllActionFireListeners() {
+            super.removeAllActionFireListeners();
+            if (mAction instanceof BaseAction) {
+                ((BaseAction) mAction).removeAllActionFireListeners();
+            }
+        }
+
+        @Override
+        public void removeActionErrorListener(OnActionErrorListener listener) {
+            super.removeActionErrorListener(listener);
+            if (mAction instanceof BaseAction) {
+                ((BaseAction) mAction).removeActionErrorListener(listener);
+            }
+        }
+
+        @Override
+        public void removeAllActionErrorListeners() {
+            super.removeAllActionErrorListeners();
+            if (mAction instanceof BaseAction) {
+                ((BaseAction) mAction).removeAllActionFireListeners();
+            }
+        }
+
+        @Override
+        public void removeActionDismissListener(OnActionDismissListener listener) {
+            super.removeActionDismissListener(listener);
+            if (mAction instanceof BaseAction) {
+                ((BaseAction) mAction).removeActionDismissListener(listener);
+            }
+        }
+
+        @Override
+        public void removeAllActionDismissListeners() {
+            super.removeAllActionDismissListeners();
+            if (mAction instanceof BaseAction) {
+                ((BaseAction) mAction).removeAllActionDismissListeners();
+            }
+        }
+
+        @Override
+        public void removeActionFireInterceptor(ActionFireInterceptor interceptor) {
+            super.removeActionFireInterceptor(interceptor);
+            if (mAction instanceof BaseAction) {
+                ((BaseAction) mAction).removeActionFireInterceptor(interceptor);
+            }
+        }
+
+        @Override
+        public void removeAllActionFireInterceptors() {
+            super.removeAllActionFireInterceptors();
+            if (mAction instanceof BaseAction) {
+                ((BaseAction) mAction).removeAllActionFireListeners();
+            }
+        }
+
+        @Override
+        public void removeAllActionListeners() {
+            super.removeAllActionListeners();
+            if (mAction instanceof BaseAction) {
+                ((BaseAction) mAction).removeAllActionListeners();
+            }
         }
     }
 }

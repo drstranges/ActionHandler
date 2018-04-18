@@ -61,7 +61,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @param <M> model type
  */
 @SuppressWarnings("SameParameterValue")
-public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredListener, OnActionErrorListener, OnActionDismissListener, ActionFireInterceptor {
+public class CompositeAction<M> extends BaseAction<M> {
 
     /**
      * Actions for show in a menu (dialog or popup window) and fire if is accepted
@@ -172,17 +172,6 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
         mTitleProvider = titleProvider;
         mDisplayDialogForSingleAction = displayDialogForSingleAction;
         mShowNonAcceptedActions = showNonAcceptedActions;
-
-        for (ActionItem item : mActions) {
-            if (item.action instanceof BaseAction) {
-                // add listeners to menu actions
-                BaseAction baseAction = (BaseAction) item.action;
-                baseAction.addActionFiredListener(this);
-                baseAction.addActionErrorListener(this);
-                baseAction.addActionDismissListener(this);
-                baseAction.addActionFireInterceptor(this);
-            }
-        }
     }
 
     /**
@@ -263,9 +252,10 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
     }
 
     private void fireActionItem(Context context, @Nullable View view, @Nullable String actionType, @Nullable M model, ActionItem actionItem) {
-        if (actionItem != null && ! interceptActionFire(context, view, actionType, model, actionItem.action)) {
+        if (actionItem != null && ! interceptActionFire(context, view, actionItem.actionType, model, actionItem.action)) {
+            notifyOnActionFired(view, actionType, model);
             //noinspection unchecked
-            actionItem.action.onFireAction(context, view, actionType, model);
+            actionItem.action.onFireAction(context, view, actionItem.actionType, model);
         }
     }
 
@@ -363,7 +353,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
                 activated.set(true);
                 final ActionItem actionItem = menuItems.get(item.getItemId());
                 if (item.isEnabled()) {
-                    fireActionItem(context, view, actionItem.actionType, model, actionItem);
+                    fireActionItem(context, view, actionType, model, actionItem);
                 } else {
                     notifyOnActionDismiss("The model is not accepted for selected action", view, actionType, model);
                 }
@@ -402,7 +392,7 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
             public void onClick(DialogInterface dialog, int which) {
                 final ActionItem actionItem = menuItems.get(which);
                 if (actionItem.action.isModelAccepted(model)) {
-                    fireActionItem(context, view, actionItem.actionType, model, actionItem);
+                    fireActionItem(context, view, actionType, model, actionItem);
                 } else {
                     notifyOnActionDismiss("Model is not acceptable for this action", view, actionType, model);
                 }
@@ -426,23 +416,133 @@ public class CompositeAction<M> extends BaseAction<M> implements OnActionFiredLi
     }
 
     @Override
-    public void onActionFired(View view, String actionType, Object model, Object result) {
-        notifyOnActionFired(view, actionType, model, result);
+    public void addActionFiredListener(OnActionFiredListener listener) {
+        super.addActionFiredListener(listener);
+        for (ActionItem item : mActions) {
+            if (item.action instanceof BaseAction) {
+                ((BaseAction) item.action).addActionFiredListener(listener);
+            }
+        }
     }
 
     @Override
-    public void onActionError(Throwable throwable, View view, String actionType, Object model) {
-        notifyOnActionError(throwable, view, actionType, model);
+    public void addActionErrorListener(OnActionErrorListener listener) {
+        super.addActionErrorListener(listener);
+        for (ActionItem item : mActions) {
+            if (item.action instanceof BaseAction) {
+                ((BaseAction) item.action).addActionErrorListener(listener);
+            }
+        }
     }
 
     @Override
-    public void onActionDismiss(String reason, View view, String actionType, Object model) {
-        notifyOnActionDismiss(reason, view, actionType, model);
+    public void addActionDismissListener(OnActionDismissListener listener) {
+        super.addActionDismissListener(listener);
+        for (ActionItem item : mActions) {
+            if (item.action instanceof BaseAction) {
+                ((BaseAction) item.action).addActionDismissListener(listener);
+            }
+        }
     }
 
     @Override
-    public boolean onInterceptActionFire(Context context, View view, String actionType, Object model, Action action) {
-        return interceptActionFire(context, view, actionType, model, action);
+    public void addActionFireInterceptor(ActionFireInterceptor interceptor) {
+        super.addActionFireInterceptor(interceptor);
+        for (ActionItem item : mActions) {
+            if (item.action instanceof BaseAction) {
+                ((BaseAction) item.action).addActionFireInterceptor(interceptor);
+            }
+        }
+    }
+
+    @Override
+    public void removeActionFireListener(OnActionFiredListener listener) {
+        super.removeActionFireListener(listener);
+        for (ActionItem item : mActions) {
+            if (item.action instanceof BaseAction) {
+                ((BaseAction) item.action).removeActionFireListener(listener);
+            }
+        }
+    }
+
+    @Override
+    public void removeAllActionFireListeners() {
+        super.removeAllActionFireListeners();
+        for (ActionItem item : mActions) {
+            if (item.action instanceof BaseAction) {
+                ((BaseAction) item.action).removeAllActionFireListeners();
+            }
+        }
+    }
+
+    @Override
+    public void removeActionErrorListener(OnActionErrorListener listener) {
+        super.removeActionErrorListener(listener);
+        for (ActionItem item : mActions) {
+            if (item.action instanceof BaseAction) {
+                ((BaseAction) item.action).removeActionErrorListener(listener);
+            }
+        }
+    }
+
+    @Override
+    public void removeAllActionErrorListeners() {
+        super.removeAllActionErrorListeners();
+        for (ActionItem item : mActions) {
+            if (item.action instanceof BaseAction) {
+                ((BaseAction) item.action).removeAllActionFireListeners();
+            }
+        }
+    }
+
+    @Override
+    public void removeActionDismissListener(OnActionDismissListener listener) {
+        super.removeActionDismissListener(listener);
+        for (ActionItem item : mActions) {
+            if (item.action instanceof BaseAction) {
+                ((BaseAction) item.action).removeActionDismissListener(listener);
+            }
+        }
+    }
+
+    @Override
+    public void removeAllActionDismissListeners() {
+        super.removeAllActionDismissListeners();
+        for (ActionItem item : mActions) {
+            if (item.action instanceof BaseAction) {
+                ((BaseAction) item.action).removeAllActionDismissListeners();
+            }
+        }
+    }
+
+    @Override
+    public void removeActionFireInterceptor(ActionFireInterceptor interceptor) {
+        super.removeActionFireInterceptor(interceptor);
+        for (ActionItem item : mActions) {
+            if (item.action instanceof BaseAction) {
+                ((BaseAction) item.action).removeActionFireInterceptor(interceptor);
+            }
+        }
+    }
+
+    @Override
+    public void removeAllActionFireInterceptors() {
+        super.removeAllActionFireInterceptors();
+        for (ActionItem item : mActions) {
+            if (item.action instanceof BaseAction) {
+                ((BaseAction) item.action).removeAllActionFireListeners();
+            }
+        }
+    }
+
+    @Override
+    public void removeAllActionListeners() {
+        super.removeAllActionListeners();
+        for (ActionItem item : mActions) {
+            if (item.action instanceof BaseAction) {
+                ((BaseAction) item.action).removeAllActionListeners();
+            }
+        }
     }
 
     /**

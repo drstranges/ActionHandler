@@ -22,13 +22,11 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.drextended.actionhandler.ActionHandler;
+import com.drextended.actionhandler.action.Action;
 import com.drextended.actionhandler.action.CompositeAction;
 import com.drextended.actionhandler.action.CompositeAction.ActionItem;
 import com.drextended.actionhandler.action.DialogAction;
-import com.drextended.actionhandler.listener.ActionInterceptor;
-import com.drextended.actionhandler.listener.OnActionDismissListener;
-import com.drextended.actionhandler.listener.OnActionErrorListener;
-import com.drextended.actionhandler.listener.OnActionFiredListener;
+import com.drextended.actionhandler.listener.ActionCallback;
 import com.drextended.databinding.ActionType;
 import com.drextended.databinding.R;
 import com.drextended.databinding.action.OpenSecondActivity;
@@ -42,7 +40,7 @@ import com.drextended.databinding.action.TrackAction;
  * Created on 15.06.2016.
  */
 
-public class MainActivityViewModel extends BaseViewModel implements OnActionFiredListener, ActionInterceptor, OnActionErrorListener, OnActionDismissListener {
+public class MainActivityViewModel extends BaseViewModel implements ActionCallback {
 
     private static final String EXTRA_LAST_ACTION_TEXT = "EXTRA_LAST_ACTION_TEXT";
 
@@ -66,6 +64,7 @@ public class MainActivityViewModel extends BaseViewModel implements OnActionFire
 
     private ActionHandler buildActionHandler() {
 
+        ShowToastAction showToastAction = new ShowToastAction();
         CompositeAction<String> menuAction = new CompositeAction<>(new CompositeAction.TitleProvider<String>() {
             @Override
             public String getTitle(Context context, String model) {
@@ -80,8 +79,8 @@ public class MainActivityViewModel extends BaseViewModel implements OnActionFire
                                 return context.getString(R.string.fire_intent_action);
                             }
                         }),
-                new ActionItem(ActionType.FIRE_ACTION, new ShowToastAction(), R.drawable.ic_announcement_black_24dp, R.color.greenLight, R.string.fire_simple_action),
-                new ActionItem(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()), R.drawable.ic_announcement_black_24dp, R.color.amber, R.string.fire_dialog_action),
+                new ActionItem(ActionType.FIRE_ACTION, showToastAction, R.drawable.ic_announcement_black_24dp, R.color.greenLight, R.string.fire_simple_action),
+                new ActionItem(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), showToastAction), R.drawable.ic_announcement_black_24dp, R.color.amber, R.string.fire_dialog_action),
                 new ActionItem(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction() {
                     @Override
                     public boolean isModelAccepted(Object model) {
@@ -96,11 +95,12 @@ public class MainActivityViewModel extends BaseViewModel implements OnActionFire
                 .addAction(null, new SimpleAnimationAction()) // Applied for any actionType
                 .addAction(null, new TrackAction()) // Applied for any actionType
                 .addAction(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity())
-                .addAction(ActionType.FIRE_ACTION, new ShowToastAction())
-                .addAction(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()))
+                .addAction(ActionType.FIRE_ACTION, showToastAction)
+                .addAction(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), showToastAction))
                 .addAction(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction())
                 .addAction(ActionType.FIRE_COMPOSITE_ACTION, menuAction)
                 .addActionInterceptor(this)
+                .addActionFireInterceptor(this)
                 .addActionFiredListener(this)
                 .addActionErrorListener(this)
                 .addActionDismissListener(this)
@@ -113,6 +113,7 @@ public class MainActivityViewModel extends BaseViewModel implements OnActionFire
     public boolean onInterceptAction(Context context, View view, String actionType, Object model) {
         switch (actionType) {
             case ActionType.OPEN_NEW_SCREEN:
+            case ActionType.FIRE_ACTION:
                 final boolean consumed = mClickCount++ % 7 == 0;
                 if (consumed) {
                     mCallback.showMessage(getString(R.string.message_action_intercepted));
@@ -122,6 +123,11 @@ public class MainActivityViewModel extends BaseViewModel implements OnActionFire
 //            case ActionType.FIRE_DIALOG_ACTION:
 //            case ActionType.FIRE_REQUEST_ACTION:
         }
+        return false;
+    }
+
+    @Override
+    public boolean onInterceptActionFire(Context context, View view, String actionType, Object model, Action action) {
         return false;
     }
 

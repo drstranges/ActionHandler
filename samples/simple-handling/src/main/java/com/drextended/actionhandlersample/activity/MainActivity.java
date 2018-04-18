@@ -53,13 +53,14 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ShowToastAction showToastAction = new ShowToastAction();
         mActionHandler = new ActionHandler.Builder()
                 .addAction(null, new SimpleAnimationAction()) // Applied for any actionType
                 .addAction(null, new TrackAction()) // Applied for any actionType
                 .addAction(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity())
 //                .addAction(ActionType.OPEN_NEW_SCREEN, IntentAction.from(SecondActivity.getIntent(this, null)))
-                .addAction(ActionType.FIRE_ACTION, new ShowToastAction())
-                .addAction(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()))
+                .addAction(ActionType.FIRE_ACTION, showToastAction)
+                .addAction(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), showToastAction))
                 .addAction(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction())
                 .addAction(ActionType.FIRE_COMPOSITE_ACTION,
                         new CompositeAction<String>(new CompositeAction.TitleProvider<String>() {
@@ -69,8 +70,8 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
                             }
                         },
                                 new ActionItem(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), R.drawable.ic_touch_app_black_24dp, 0, R.string.fire_intent_action),
-                                new ActionItem(ActionType.FIRE_ACTION, new ShowToastAction(), R.drawable.ic_announcement_black_24dp, R.color.greenLight, R.string.fire_simple_action),
-                                new ActionItem(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), new ShowToastAction()), R.drawable.ic_announcement_black_24dp, R.color.amber, R.string.fire_dialog_action),
+                                new ActionItem(ActionType.FIRE_ACTION, showToastAction, R.drawable.ic_announcement_black_24dp, R.color.greenLight, R.string.fire_simple_action),
+                                new ActionItem(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), showToastAction), R.drawable.ic_announcement_black_24dp, R.color.amber, R.string.fire_dialog_action),
                                 new ActionItem(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction(), R.drawable.ic_cloud_upload_black_24dp, R.color.red, R.string.fire_request_action)
                         ))
                 .addActionInterceptor(this)
