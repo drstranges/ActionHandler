@@ -99,11 +99,7 @@ public class MainActivityViewModel extends BaseViewModel implements ActionCallba
                 .addAction(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), showToastAction))
                 .addAction(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction())
                 .addAction(ActionType.FIRE_COMPOSITE_ACTION, menuAction)
-                .addActionInterceptor(this)
-                .addActionFireInterceptor(this)
-                .addActionFiredListener(this)
-                .addActionErrorListener(this)
-                .addActionDismissListener(this)
+                .addCallback(this)
                 .setDefaultDebounce(1000)
                 .setDebounce(2000, ActionType.FIRE_ACTION)
                 .build();

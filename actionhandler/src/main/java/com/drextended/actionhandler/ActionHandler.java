@@ -304,9 +304,10 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
     }
 
     /**
-     * Add new action observer
+     * Add new action callback.
+     * One method for adding all listeners and interceptors.
      *
-     * @param actionCallback The action observer
+     * @param actionCallback The action callback
      */
     public void addCallback(ActionCallback actionCallback) {
         addActionInterceptor(actionCallback);
@@ -317,9 +318,9 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
     }
 
     /**
-     * Remove action observer
+     * Remove action callback
      *
-     * @param actionCallback The action observer
+     * @param actionCallback The action callback
      */
     public void removeCallback(ActionCallback actionCallback) {
         removeActionInterceptor(actionCallback);
@@ -612,6 +613,21 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
                 mActionFireInterceptors = new HashSet<>(1);
             }
             mActionFireInterceptors.add(actionFireInterceptor);
+            return this;
+        }
+
+        /**
+         * Add new action callback.
+         * One method for adding all listeners and interceptors.
+         *
+         * @param actionCallback The action callback
+         */
+        public Builder addCallback(ActionCallback actionCallback) {
+            addActionInterceptor(actionCallback);
+            addActionFireInterceptor(actionCallback);
+            addActionFiredListener(actionCallback);
+            addActionDismissListener(actionCallback);
+            addActionErrorListener(actionCallback);
             return this;
         }
 
