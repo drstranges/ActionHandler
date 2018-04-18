@@ -16,7 +16,7 @@ repositories {
 }
 dependencies {
     //implement 'com.drextended.actionhandler:actionhandler:1.2.0' // <= compiled with android.databinding.enableV2=false
-    implement 'com.drextended.actionhandler:actionhandler:2.1.0' // <= compiled with android.databinding.enableV2=true
+    implement 'com.drextended.actionhandler:actionhandler:2.1.1' // <= compiled with android.databinding.enableV2=true
     //implementation "com.android.support:appcompat-v7:27.1.1"
     //implementation "io.reactivex.rxjava2:rxandroid:2.0.1"
     //implementation "io.reactivex.rxjava2:rxjava:2.1.8"
