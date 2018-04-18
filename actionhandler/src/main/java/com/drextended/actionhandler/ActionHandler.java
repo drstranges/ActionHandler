@@ -448,7 +448,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
     }
 
     private boolean interceptAction(Context context, View view, String actionType, Object model) {
-        if (mActionInterceptors == null) {
+        if (mActionInterceptors != null) {
             for (ActionInterceptor interceptor : mActionInterceptors) {
                 if (interceptor.onInterceptAction(context, view, actionType, model)) return true;
             }

@@ -1,3 +1,7 @@
+## 2.1.2 (2018-04-18)
+
+* fix bug introduced in v2.1.1
+
 ## 2.1.1 (2018-04-18)
 
 * add global callback to help you set all listeners and interceptors using just one method. Use `addCallback(callback)`.
