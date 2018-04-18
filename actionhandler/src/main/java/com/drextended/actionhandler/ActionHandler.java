@@ -26,6 +26,7 @@ import com.drextended.actionhandler.action.Cancelable;
 import com.drextended.actionhandler.listener.ActionClickListener;
 import com.drextended.actionhandler.listener.ActionFireInterceptor;
 import com.drextended.actionhandler.listener.ActionInterceptor;
+import com.drextended.actionhandler.listener.ActionCallback;
 import com.drextended.actionhandler.listener.OnActionDismissListener;
 import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
@@ -90,12 +91,22 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
     }
 
     /**
+     * Null-safe equivalent of {@code a.equals(b)}.
+     *
+     * @param a the first object
+     * @param b the second object
+     * @return true if a equals b
+     */
+    public static boolean equals(Object a, Object b) {
+        return (a == null) ? (b == null) : a.equals(b);
+    }
+
+    /**
      * Set new callback to be invoked when an action is executed successfully
      * Note: It is called only for BaseActions.
      * You should call {@link BaseAction#notifyOnActionFired(View, String, Object)} to invoke this callback.
      *
      * @param actionFiredListener new callback to be invoked when an action is executed successfully
-     *
      * @deprecated Use {@link #addActionFiredListener(OnActionFiredListener)} instead
      */
     @Deprecated
@@ -293,6 +304,32 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
     }
 
     /**
+     * Add new action observer
+     *
+     * @param actionCallback The action observer
+     */
+    public void addCallback(ActionCallback actionCallback) {
+        addActionInterceptor(actionCallback);
+        addActionFireInterceptor(actionCallback);
+        addActionFiredListener(actionCallback);
+        addActionDismissListener(actionCallback);
+        addActionErrorListener(actionCallback);
+    }
+
+    /**
+     * Remove action observer
+     *
+     * @param actionCallback The action observer
+     */
+    public void removeCallback(ActionCallback actionCallback) {
+        removeActionInterceptor(actionCallback);
+        removeActionFireInterceptor(actionCallback);
+        removeActionFiredListener(actionCallback);
+        removeActionDismissListener(actionCallback);
+        removeActionErrorListener(actionCallback);
+    }
+
+    /**
      * Remove all callbacks for action intercept, fire, error and dismiss events
      */
     public void removeAllActionListeners() {
@@ -379,19 +416,15 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
             return;
         }
 
-        if (mActionInterceptors != null) {
-            for (ActionInterceptor interceptor : mActionInterceptors) {
-                if (interceptor.onInterceptAction(context, view, actionType, model)) return;
-            }
-        }
+        if (interceptAction(context, view, actionType, model)) return;
 
         for (ActionPair actionPair : mActions) {
             if (actionPair.actionType == null || actionPair.actionType.equals(actionType)) {
                 final Action action = actionPair.action;
                 if (action != null && action.isModelAccepted(model)) {
-                    if (interceptActionFire(context, view, actionType, model, action)) continue;
+                    if (interceptActionFire(context, view, actionPair.actionType, model, action)) continue;
                     //noinspection unchecked
-                    action.onFireAction(context, view, actionType, model);
+                    action.onFireAction(context, view, actionPair.actionType, model);
                 }
             }
         }
@@ -413,10 +446,21 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
         return true;
     }
 
+    private boolean interceptAction(Context context, View view, String actionType, Object model) {
+        if (mActionInterceptors == null) {
+            for (ActionInterceptor interceptor : mActionInterceptors) {
+                if (interceptor.onInterceptAction(context, view, actionType, model)) return true;
+            }
+        }
+        return false;
+    }
+
     private boolean interceptActionFire(Context context, View view, String actionType, Object model, Action action) {
         if (mActionFireInterceptors != null) {
             for (ActionFireInterceptor interceptor : mActionFireInterceptors) {
-                if (interceptor.onInterceptActionFire(context, view, actionType, model, action)) return true;
+                if (interceptor.onInterceptActionFire(context, view, actionType, model, action)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -433,16 +477,6 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
                 ((Cancelable) actionPair.action).cancel();
             }
         }
-    }
-
-    /**
-     * Null-safe equivalent of {@code a.equals(b)}.
-     * @param a the first object
-     * @param b the second object
-     * @return true if a equals b
-     */
-    public static boolean equals(Object a, Object b) {
-        return (a == null) ? (b == null) : a.equals(b);
     }
 
     /**
@@ -482,7 +516,6 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
          *
          * @param actionFiredListener new callback to be invoked when an action is executed successfully
          * @return the builder
-         *
          * @deprecated use {@link #addActionFiredListener(OnActionFiredListener)} instead
          */
         @Deprecated
@@ -584,7 +617,8 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
 
         /**
          * Set default debounce time for distinct click actions
-         * @param debounceTimeMillis    the debounce time in milliseconds
+         *
+         * @param debounceTimeMillis the debounce time in milliseconds
          * @return the builder
          */
         public Builder setDefaultDebounce(long debounceTimeMillis) {
@@ -594,9 +628,10 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
 
         /**
          * Set debounce time for defined action types. If set for specific action, overrides default debounce time.
-         * @param debounceTimeMillis    the debounce time in milliseconds
-         * @param actionTypes           the action types to apply debounce
-         * @return                      the builder
+         *
+         * @param debounceTimeMillis the debounce time in milliseconds
+         * @param actionTypes        the action types to apply debounce
+         * @return the builder
          */
         public Builder setDebounce(long debounceTimeMillis, String... actionTypes) {
             if (actionTypes != null && actionTypes.length > 0) {
