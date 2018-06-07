@@ -16,7 +16,7 @@ repositories {
 }
 dependencies {
     //implement 'com.drextended.actionhandler:actionhandler:1.2.0' // <= compiled with android.databinding.enableV2=false
-    implement 'com.drextended.actionhandler:actionhandler:2.1.2' // <= compiled with android.databinding.enableV2=true
+    implement 'com.drextended.actionhandler:actionhandler:2.1.3' // <= compiled with android.databinding.enableV2=true
     //implementation "com.android.support:appcompat-v7:27.1.1"
     //implementation "io.reactivex.rxjava2:rxandroid:2.0.1"
     //implementation "io.reactivex.rxjava2:rxjava:2.1.8"
@@ -52,6 +52,14 @@ dependencies {
                                 new ActionItem(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), R.string.menu_item_1),
                                 new ActionItem(ActionType.FIRE_ACTION, new ShowToastAction(), R.drawable.icon, R.color.tint, R.string.menu_item_2),
                         ))
+                //or by lazy
+                .withFactory(actionType -> {
+                    switch(actionType) {
+                        case ActionType.SOME_ACTION:
+                            return new SomeAction(); 
+                    }
+                    return null;
+                })        
                 .addActionInterceptor(this)
                 .addActionFiredListener(this)
                 .addActionErrorListener(this)
