@@ -21,19 +21,21 @@ import android.util.Log;
 import android.view.View;
 
 import com.drextended.actionhandler.action.Action;
+import com.drextended.actionhandler.action.ActionFactory;
 import com.drextended.actionhandler.action.BaseAction;
 import com.drextended.actionhandler.action.Cancelable;
+import com.drextended.actionhandler.action.SingleActionFactory;
+import com.drextended.actionhandler.action.SingleActionFactoryAdapter;
+import com.drextended.actionhandler.listener.ActionCallback;
 import com.drextended.actionhandler.listener.ActionClickListener;
 import com.drextended.actionhandler.listener.ActionFireInterceptor;
 import com.drextended.actionhandler.listener.ActionInterceptor;
-import com.drextended.actionhandler.listener.ActionCallback;
 import com.drextended.actionhandler.listener.OnActionDismissListener;
 import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
 import com.drextended.actionhandler.util.DebounceHelper;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,7 +49,10 @@ import java.util.Set;
 public class ActionHandler implements ActionClickListener, OnActionFiredListener, OnActionErrorListener, OnActionDismissListener, ActionFireInterceptor {
 
     // Actions which was added to the handler
-    protected final List<ActionPair> mActions;
+    protected final List<ActionPair> mActions = new ArrayList<>();
+
+    // Factory for build actions on demand
+    protected ActionFactory mActionFactory;
 
     // Callbacks to be invoked when an action is executed successfully
     protected Set<OnActionFiredListener> mOnActionFiredListeners;
@@ -77,17 +82,15 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
      * @param actions list of actions to handle by this handler
      */
     protected ActionHandler(List<ActionPair> actions) {
-        mActions = actions != null ? actions : Collections.<ActionPair>emptyList();
+        addActionsInternal(actions);
+    }
 
-        for (ActionPair actionPair : mActions) {
-            if (actionPair.action instanceof BaseAction) {
-                BaseAction baseAction = ((BaseAction) actionPair.action);
-                baseAction.addActionFiredListener(this);
-                baseAction.addActionErrorListener(this);
-                baseAction.addActionDismissListener(this);
-                baseAction.addActionFireInterceptor(this);
-            }
-        }
+    /**
+     * Set factory for crate actions lazy.
+     * @param actionFactory the factory
+     */
+    public void setActionFactory(ActionFactory actionFactory) {
+        mActionFactory = actionFactory;
     }
 
     /**
@@ -419,14 +422,49 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
 
         if (interceptAction(context, view, actionType, model)) return;
 
+        List<ActionPair> actionPairs = getActionsForActionType(actionType);
+
+        for (ActionPair actionPair : actionPairs) {
+            final Action action = actionPair.action;
+            if (action != null && action.isModelAccepted(model)) {
+                if (interceptActionFire(context, view, actionPair.actionType, model, action)) continue;
+                //noinspection unchecked
+                action.onFireAction(context, view, actionPair.actionType, model);
+            }
+        }
+    }
+
+    private List<ActionPair> getActionsForActionType(String actionType) {
+        List<ActionPair> foundActions = new ArrayList<>(1);
+        boolean hasActionsForActionType = false;
         for (ActionPair actionPair : mActions) {
             if (actionPair.actionType == null || actionPair.actionType.equals(actionType)) {
-                final Action action = actionPair.action;
-                if (action != null && action.isModelAccepted(model)) {
-                    if (interceptActionFire(context, view, actionPair.actionType, model, action)) continue;
-                    //noinspection unchecked
-                    action.onFireAction(context, view, actionPair.actionType, model);
+                foundActions.add(actionPair);
+                hasActionsForActionType |= actionPair.actionType != null;
+            }
+        }
+        if (!hasActionsForActionType && mActionFactory != null && actionType != null) {
+            Action[] actions = mActionFactory.provideActions(actionType);
+            if (actions != null) {
+                for (Action action : actions) {
+                    ActionPair actionPair = new ActionPair(actionType, action);
+                    foundActions.add(actionPair);
                 }
+                addActionsInternal(foundActions);
+            }
+        }
+        return foundActions;
+    }
+
+    private synchronized void addActionsInternal(List<ActionPair> actions) {
+        mActions.addAll(actions);
+        for (ActionPair actionPair : actions) {
+            if (actionPair.action instanceof BaseAction) {
+                BaseAction baseAction = ((BaseAction) actionPair.action);
+                baseAction.addActionFiredListener(this);
+                baseAction.addActionErrorListener(this);
+                baseAction.addActionDismissListener(this);
+                baseAction.addActionFireInterceptor(this);
             }
         }
     }
@@ -486,6 +524,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
     @SuppressWarnings("SameParameterValue")
     public static final class Builder {
         private List<ActionPair> mActions;
+        private ActionFactory mActionFactory;
         private Set<OnActionFiredListener> mActionFiredListeners;
         private Set<OnActionErrorListener> mActionErrorListeners;
         private Set<OnActionDismissListener> mActionDismissListeners;
@@ -496,6 +535,28 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
 
         public Builder() {
             mActions = new ArrayList<>();
+        }
+
+        /**
+         * Set ActionFactory for lazy instantiating actions
+         * @param factory the factory
+         * @return the builder
+         */
+        public Builder withActionFactory(ActionFactory factory) {
+            mActionFactory = factory;
+            return this;
+        }
+
+        /**
+         * Set ActionFactory for lazy instantiating actions
+         * Simplified version of {@link #withActionFactory(ActionFactory)}
+         * that returns single action for given actionType instead of array of actions
+         * @param factory the factory
+         * @return the builder
+         */
+        public Builder withFactory(SingleActionFactory factory) {
+            mActionFactory = new SingleActionFactoryAdapter(factory);
+            return this;
         }
 
         /**
@@ -666,6 +727,9 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
             final ActionHandler actionHandler = new ActionHandler(mActions);
             actionHandler.mDefaultDebounceTime = this.mDefaultDebounceTime;
             actionHandler.mActionDebounceTime = this.mActionDebounceTime;
+            if (mActionFactory != null) {
+                actionHandler.mActionFactory = mActionFactory;
+            }
             if (mActionFiredListeners != null) {
                 actionHandler.mOnActionFiredListeners = mActionFiredListeners;
             }

@@ -1,3 +1,7 @@
+## 2.1.3 (2018-06-07)
+
+* add ActionFactory for lazy instantiation actions
+
 ## 2.1.2 (2018-04-18)
 
 * fix bug introduced in v2.1.1

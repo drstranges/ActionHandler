@@ -19,6 +19,8 @@ package com.drextended.databinding.viewmodel;
 import android.content.Context;
 import android.databinding.ObservableField;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.view.View;
 
 import com.drextended.actionhandler.ActionHandler;
@@ -26,6 +28,7 @@ import com.drextended.actionhandler.action.Action;
 import com.drextended.actionhandler.action.CompositeAction;
 import com.drextended.actionhandler.action.CompositeAction.ActionItem;
 import com.drextended.actionhandler.action.DialogAction;
+import com.drextended.actionhandler.action.SingleActionFactory;
 import com.drextended.actionhandler.listener.ActionCallback;
 import com.drextended.databinding.ActionType;
 import com.drextended.databinding.R;
@@ -64,7 +67,36 @@ public class MainActivityViewModel extends BaseViewModel implements ActionCallba
 
     private ActionHandler buildActionHandler() {
 
-        ShowToastAction showToastAction = new ShowToastAction();
+        final ShowToastAction showToastAction = new ShowToastAction();
+
+        return new ActionHandler.Builder()
+                .addAction(null, new SimpleAnimationAction()) // Applied for any actionType
+                .addAction(null, new TrackAction()) // Applied for any actionType
+                .addAction(ActionType.FIRE_ACTION, showToastAction)
+                .withFactory(new SingleActionFactory() {
+                    @Nullable
+                    @Override
+                    public Action provideAction(@NonNull String actionType) {
+                        switch (actionType) {
+                            case ActionType.OPEN_NEW_SCREEN:
+                                return new OpenSecondActivity();
+                            case ActionType.FIRE_DIALOG_ACTION:
+                                return DialogAction.wrap(getString(R.string.action_dialog_message), showToastAction);
+                            case ActionType.FIRE_REQUEST_ACTION:
+                                return new SampleRequestAction();
+                            case ActionType.FIRE_COMPOSITE_ACTION:
+                                return buildMenuAction(showToastAction);
+                        }
+                        return null;
+                    }
+                })
+                .addCallback(this)
+                .setDefaultDebounce(1000)
+                .setDebounce(2000, ActionType.FIRE_ACTION)
+                .build();
+    }
+
+    private Action buildMenuAction(ShowToastAction showToastAction) {
         CompositeAction<String> menuAction = new CompositeAction<>(new CompositeAction.TitleProvider<String>() {
             @Override
             public String getTitle(Context context, String model) {
@@ -90,19 +122,7 @@ public class MainActivityViewModel extends BaseViewModel implements ActionCallba
                 new ActionItem(ActionType.FIRE_RX_REQUEST_ACTION, new SampleRxRequestAction(), 0, 0, R.string.fire_rx_request_action)
         );
         menuAction.setShowAsPopupMenuEnabled(false);
-
-        return new ActionHandler.Builder()
-                .addAction(null, new SimpleAnimationAction()) // Applied for any actionType
-                .addAction(null, new TrackAction()) // Applied for any actionType
-                .addAction(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity())
-                .addAction(ActionType.FIRE_ACTION, showToastAction)
-                .addAction(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), showToastAction))
-                .addAction(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction())
-                .addAction(ActionType.FIRE_COMPOSITE_ACTION, menuAction)
-                .addCallback(this)
-                .setDefaultDebounce(1000)
-                .setDebounce(2000, ActionType.FIRE_ACTION)
-                .build();
+        return menuAction;
     }
 
     @Override
