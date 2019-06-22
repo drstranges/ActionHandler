@@ -1,24 +1,7 @@
-/*
- *  Copyright Roman Donchenko. All Rights Reserved.
- *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- */
-
 apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
 
     dataBinding {
         enabled = true
@@ -26,12 +9,10 @@ android {
 
     defaultConfig {
         applicationId "com.example.databinding"
-        minSdkVersion 15
-        targetSdkVersion 25
+        minSdkVersion 21
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
     buildTypes {
@@ -43,13 +24,18 @@ android {
     lintOptions {
         abortOnError false
     }
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
 }
 
 dependencies {
-    testImplementation 'junit:junit:4.12'
-    implementation "com.android.support:support-v4:$rootProject.ext.supportLibrary"
-    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibrary"
-    implementation "io.reactivex.rxjava2:rxandroid:2.0.1"
-    implementation "io.reactivex.rxjava2:rxjava:2.1.8"
     implementation project(path: ':actionhandler')
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+
+    implementation "androidx.annotation:annotation:$x_annotation_version"
+    implementation "androidx.appcompat:appcompat:$x_appcompat_version"
+    implementation "io.reactivex.rxjava2:rxjava:$rxjava2_version"
+    implementation "io.reactivex.rxjava2:rxandroid:$rxandroid_version"
 }

@@ -16,7 +16,7 @@
 
 package com.drextended.actionhandler.action;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * Adapter for use {@link SingleActionFactory} as {@link ActionFactory}

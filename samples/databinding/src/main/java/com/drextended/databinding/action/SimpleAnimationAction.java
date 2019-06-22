@@ -18,7 +18,7 @@ package com.drextended.databinding.action;
 
 import android.animation.ObjectAnimator;
 import android.content.Context;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.view.View;
 
 import com.drextended.actionhandler.action.Action;

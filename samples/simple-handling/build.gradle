@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
 
     dataBinding{
         enabled = false
@@ -10,8 +9,8 @@ android {
 
     defaultConfig {
         applicationId "com.drextended.actionhandler"
-        minSdkVersion 15
-        targetSdkVersion 25
+        minSdkVersion 21
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
     }
@@ -24,11 +23,18 @@ android {
     lintOptions {
         abortOnError false
     }
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
 }
 
 dependencies {
-    testImplementation 'junit:junit:4.12'
-    implementation "com.android.support:support-v4:$rootProject.ext.supportLibrary"
-    implementation "com.android.support:appcompat-v7:$rootProject.ext.supportLibrary"
     implementation project(path: ':actionhandler')
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+
+    implementation "androidx.annotation:annotation:$x_annotation_version"
+    implementation "androidx.appcompat:appcompat:$x_appcompat_version"
+    implementation "io.reactivex.rxjava2:rxjava:$rxjava2_version"
+    implementation "io.reactivex.rxjava2:rxandroid:$rxandroid_version"
 }

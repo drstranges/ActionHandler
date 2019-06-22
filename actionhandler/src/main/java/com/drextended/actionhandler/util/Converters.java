@@ -16,8 +16,9 @@
 
 package com.drextended.actionhandler.util;
 
-import android.databinding.BindingAdapter;
 import android.view.View;
+
+import androidx.databinding.BindingAdapter;
 
 import com.drextended.actionhandler.listener.ActionClickListener;
 
@@ -70,6 +71,13 @@ public class Converters {
                         return true;
                     }
                 });
+            }
+        } else {
+            if (actionType != null) {
+                view.setOnClickListener(null);
+            }
+            if (actionTypeLongClick != null) {
+                view.setOnLongClickListener(null);
             }
         }
     }

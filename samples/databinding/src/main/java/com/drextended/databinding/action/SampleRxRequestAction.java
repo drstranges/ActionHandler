@@ -17,7 +17,7 @@
 package com.drextended.databinding.action;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.view.View;
 import android.widget.Toast;
 
@@ -45,7 +45,7 @@ public class SampleRxRequestAction extends RxRequestAction<String, String> {
             return Maybe.just("").delay(2000, TimeUnit.MILLISECONDS).flatMap(new Function<String, MaybeSource<? extends String>>() {
 
                 @Override
-                public MaybeSource<? extends String> apply(String s) throws Exception {
+                public MaybeSource<? extends String> apply(String s) {
                     return Maybe.error(new Throwable("Request has failed"));
                 }
             });

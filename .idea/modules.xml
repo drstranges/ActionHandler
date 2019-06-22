@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/ActionHandler.iml" filepath="$PROJECT_DIR$/.idea/ActionHandler.iml" />
       <module fileurl="file://$PROJECT_DIR$/ActionHandler.iml" filepath="$PROJECT_DIR$/ActionHandler.iml" />
       <module fileurl="file://$PROJECT_DIR$/actionhandler/actionhandler.iml" filepath="$PROJECT_DIR$/actionhandler/actionhandler.iml" />
       <module fileurl="file://$PROJECT_DIR$/samples/databinding/databinding.iml" filepath="$PROJECT_DIR$/samples/databinding/databinding.iml" />

@@ -17,10 +17,10 @@
 package com.drextended.databinding.viewmodel;
 
 import android.content.Context;
-import android.databinding.ObservableField;
+import androidx.databinding.ObservableField;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.view.View;
 
 import com.drextended.actionhandler.ActionHandler;

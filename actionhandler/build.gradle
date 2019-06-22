@@ -30,15 +30,14 @@ ext {
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
 
     dataBinding {
         enabled = true
     }
 
     defaultConfig {
-        minSdkVersion 15
-        targetSdkVersion 25
+        minSdkVersion 19
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode libraryVersionRevision
         versionName libraryVersion
     }
@@ -54,15 +53,11 @@ android {
     }
 }
 
-//configurations {
-//    javadocDeps
-//}
-
 dependencies {
-    implementation "com.android.support:support-annotations:$rootProject.ext.supportLibrary"
-    compileOnly "com.android.support:appcompat-v7:$rootProject.ext.supportLibrary"
-    compileOnly 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    implementation 'io.reactivex.rxjava2:rxjava:2.1.8'
+    implementation "androidx.annotation:annotation:$x_annotation_version"
+    compileOnly "androidx.appcompat:appcompat:$x_appcompat_version"
+    compileOnly "io.reactivex.rxjava2:rxjava:$rxjava2_version"
+    compileOnly "io.reactivex.rxjava2:rxandroid:$rxandroid_version"
 
 }
 

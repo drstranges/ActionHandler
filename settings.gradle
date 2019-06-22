@@ -1,1 +1,1 @@
-include ':samples:simple-handling', ':samples:databinding', ':actionhandler'
+include ':actionhandler', ':samples:simple-handling', ':samples:databinding'

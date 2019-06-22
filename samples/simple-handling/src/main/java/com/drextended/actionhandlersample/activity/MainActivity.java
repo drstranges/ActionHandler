@@ -18,11 +18,12 @@ package com.drextended.actionhandlersample.activity;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.drextended.actionhandler.ActionHandler;
 import com.drextended.actionhandler.action.CompositeAction;
@@ -32,6 +33,7 @@ import com.drextended.actionhandler.listener.ActionInterceptor;
 import com.drextended.actionhandler.listener.OnActionDismissListener;
 import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
+import com.drextended.actionhandler.util.OnActionClickListener;
 import com.drextended.actionhandlersample.ActionType;
 import com.drextended.actionhandlersample.R;
 import com.drextended.actionhandlersample.action.OpenSecondActivity;
@@ -94,33 +96,25 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
             }
         });
 
-        findViewById(R.id.button2).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mActionHandler.onActionClick(v, ActionType.FIRE_ACTION, getSampleModel());
-            }
-        });
+        findViewById(R.id.button2).setOnClickListener(
+                new OnActionClickListener(mActionHandler, getSampleModel(), ActionType.FIRE_ACTION)
+        );
 
-        findViewById(R.id.button3).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mActionHandler.onActionClick(v, ActionType.FIRE_DIALOG_ACTION, getSampleModel());
-            }
-        });
+        findViewById(R.id.button3).setOnClickListener(
+                new OnActionClickListener(mActionHandler, getSampleModel(), ActionType.FIRE_DIALOG_ACTION)
+        );
 
-        findViewById(R.id.button4).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mActionHandler.onActionClick(v, ActionType.FIRE_REQUEST_ACTION, getSampleModel());
-            }
-        });
+        findViewById(R.id.button4).setOnClickListener(
+                new OnActionClickListener(mActionHandler, getSampleModel(), ActionType.FIRE_REQUEST_ACTION)
+        );
 
-        findViewById(R.id.button5).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mActionHandler.onActionClick(v, ActionType.FIRE_COMPOSITE_ACTION, getSampleModel());
-            }
-        });
+        findViewById(R.id.button5).setOnClickListener(
+                new OnActionClickListener(mActionHandler, getSampleModel(), ActionType.FIRE_COMPOSITE_ACTION)
+        );
+
+        findViewById(R.id.button5).setOnLongClickListener(
+                new OnActionClickListener(mActionHandler, getSampleModel(), ActionType.FIRE_DIALOG_ACTION)
+        );
     }
 
     @NonNull

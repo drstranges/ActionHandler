@@ -24,7 +24,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.view.Window;
 
 import java.util.ArrayList;
@@ -108,7 +108,7 @@ public class ProgressBarController {
         final Activity activity = getActivity(context);
         if (!isAlive(activity) || activity.isFinishing()) return;
         if (tag == null) tag = DEFAULT_TAG;
-        ProgressDialog dialog = null;
+        ProgressDialog dialog;
         synchronized (sLock) {
             dialog = findDialog(tag);
 
@@ -197,7 +197,7 @@ public class ProgressBarController {
     private static boolean isAlive(final Activity activity) {
         if (activity == null) return false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            if (activity.isDestroyed()) return false;
+            return !activity.isDestroyed();
         }
         return true;
     }
