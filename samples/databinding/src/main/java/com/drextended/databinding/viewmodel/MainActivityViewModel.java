@@ -17,13 +17,15 @@
 package com.drextended.databinding.viewmodel;
 
 import android.content.Context;
-import androidx.databinding.ObservableField;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.view.View;
+import androidx.databinding.ObservableField;
 
+import com.drextended.actionhandler.ActionArgs;
 import com.drextended.actionhandler.ActionHandler;
+import com.drextended.actionhandler.ActionParams;
 import com.drextended.actionhandler.action.Action;
 import com.drextended.actionhandler.action.CompositeAction;
 import com.drextended.actionhandler.action.CompositeAction.ActionItem;
@@ -97,19 +99,14 @@ public class MainActivityViewModel extends BaseViewModel implements ActionCallba
     }
 
     private Action buildMenuAction(ShowToastAction showToastAction) {
-        CompositeAction<String> menuAction = new CompositeAction<>(new CompositeAction.TitleProvider<String>() {
-            @Override
-            public String getTitle(Context context, String model) {
-                return "Title (" + model + ")";
-            }
-        }, true, true,
+        CompositeAction<String> menuAction = new CompositeAction<>((
+                context, model) -> "Title (" + model + ")",
+                true,
+                true,
                 new ActionItem<>(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), R.drawable.ic_touch_app_black_24dp, 0,
-                        new CompositeAction.TitleProvider<String>() {
-                            @Override
-                            public String getTitle(Context context, String model) {
-                                // There you can return any title for menu item using some fields from model
-                                return context.getString(R.string.fire_intent_action);
-                            }
+                        (context, model) -> {
+                            // There you can return any title for menu item using some fields from model
+                            return context.getString(R.string.fire_intent_action);
                         }),
                 new ActionItem(ActionType.FIRE_ACTION, showToastAction, R.drawable.ic_announcement_black_24dp, R.color.greenLight, R.string.fire_simple_action),
                 new ActionItem(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), showToastAction), R.drawable.ic_announcement_black_24dp, R.color.amber, R.string.fire_dialog_action),
@@ -126,8 +123,8 @@ public class MainActivityViewModel extends BaseViewModel implements ActionCallba
     }
 
     @Override
-    public boolean onInterceptAction(Context context, View view, String actionType, Object model) {
-        switch (actionType) {
+    public boolean onInterceptAction(@NonNull ActionParams params) {
+        switch (params.actionType) {
             case ActionType.OPEN_NEW_SCREEN:
             case ActionType.FIRE_ACTION:
                 final boolean consumed = mClickCount++ % 7 == 0;
@@ -143,13 +140,13 @@ public class MainActivityViewModel extends BaseViewModel implements ActionCallba
     }
 
     @Override
-    public boolean onInterceptActionFire(Context context, View view, String actionType, Object model, Action action) {
+    public boolean onInterceptActionFire(@NonNull ActionParams actionParams, @Nullable String actionType, @NonNull Action action) {
         return false;
     }
 
     @Override
-    public void onActionFired(View view, String actionType, Object model, Object result) {
-        switch (actionType) {
+    public void onActionFired(@NonNull ActionArgs args, @Nullable Object result) {
+        switch (args.params.actionType) {
             case ActionType.OPEN_NEW_SCREEN:
                 lastActionText.set("Intent Action");
                 break;
@@ -166,12 +163,12 @@ public class MainActivityViewModel extends BaseViewModel implements ActionCallba
     }
 
     @Override
-    public void onActionError(Throwable throwable, View view, String actionType, Object model) {
+    public void onActionError(@NonNull ActionArgs args, @Nullable Throwable throwable) {
         mCallback.showMessage("TestError: " + (throwable != null ? throwable.getMessage() : null));
     }
 
     @Override
-    public void onActionDismiss(String reason, View view, String actionType, Object model) {
+    public void onActionDismiss(@NonNull ActionArgs args, @Nullable String reason) {
         mCallback.showMessage("Action dismissed. Reason: " + reason);
     }
 
@@ -193,10 +190,6 @@ public class MainActivityViewModel extends BaseViewModel implements ActionCallba
 
         void showMessage(String message);
 
-        Callback EMPTY_CALLBACK = new Callback() {
-            @Override
-            public void showMessage(String message) {
-            }
-        };
+        Callback EMPTY_CALLBACK = message -> { };
     }
 }

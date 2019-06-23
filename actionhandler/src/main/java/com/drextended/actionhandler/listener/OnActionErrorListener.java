@@ -16,7 +16,10 @@
 
 package com.drextended.actionhandler.listener;
 
-import android.view.View;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.drextended.actionhandler.ActionArgs;
 
 /**
  * Interface definition for a callback to be invoked when an action is executed with error.
@@ -25,10 +28,12 @@ public interface OnActionErrorListener {
 
     /**
      * Called when error occurred while an action is executing.
-     * @param throwable  The error
-     * @param view       The View, which were used for executing the action,
-     * @param actionType The action type, which were used for executing the action
-     * @param model      The model, which were used for executing the action
+     *
+     * @param args      The action params, which appointed to the view and actually actionType
+     * @param throwable The error
      */
-    void onActionError(Throwable throwable, View view, String actionType, Object model);
+    void onActionError(
+            @NonNull ActionArgs args,
+            @Nullable Throwable throwable
+    );
 }

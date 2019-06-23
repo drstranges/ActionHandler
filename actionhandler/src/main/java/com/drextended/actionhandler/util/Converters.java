@@ -39,6 +39,8 @@ public class Converters {
      *     android:actionType='@{"send_message"}'
      *     android:actionTypeLongClick='@{"show_menu"}'
      *     android:model="@{user}"
+     *     android:modelLongClick="@{userSettings}"
+     *     android:actionTag='@{"analytics_tag_1"}'
      *
      *     android:text="@string/my_button_text"/&gt;
      * </pre>
@@ -49,36 +51,42 @@ public class Converters {
      * @param actionTypeLongClick The action type, which will be handled on view long clicked
      * @param model               The model which will be handled
      * @param modelLongClick      The model which will be handled for long click. If null, {@code model} will be used
+     * @param actionTag           The tag. CAn be used to distinct click source
      */
     @BindingAdapter(
-            value = {"actionHandler", "actionType", "actionTypeLongClick", "model", "modelLongClick"},
+            value = {
+                    "actionHandler",
+                    "actionType",
+                    "actionTypeLongClick",
+                    "model",
+                    "modelLongClick",
+                    "actionTag"
+            },
             requireAll = false
     )
-    public static void setActionHandler(final View view, final ActionClickListener actionHandler, final String actionType, final String actionTypeLongClick, final Object model, final Object modelLongClick) {
+    public static void setActionHandler(
+            final View view,
+            final ActionClickListener actionHandler,
+            final String actionType,
+            final String actionTypeLongClick,
+            final Object model,
+            final Object modelLongClick,
+            final Object actionTag
+    ) {
         if (actionHandler != null) {
-            if (actionType != null) {
-                view.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        actionHandler.onActionClick(view, actionType, model);
-                    }
-                });
-            }
-
-            if (actionTypeLongClick != null) {
-                view.setOnLongClickListener(new View.OnLongClickListener() {
-                    public boolean onLongClick(View v) {
-                        actionHandler.onActionClick(view, actionTypeLongClick, modelLongClick != null ? modelLongClick : model);
-                        return true;
-                    }
-                });
-            }
+            ViewOnActionClickListener clickListener = new ViewOnActionClickListener(
+                    actionHandler,
+                    actionType,
+                    actionTypeLongClick,
+                    model,
+                    modelLongClick == null ? model : modelLongClick,
+                    actionTag
+            );
+            if (actionType != null) view.setOnClickListener(clickListener);
+            if (actionTypeLongClick != null) view.setOnLongClickListener(clickListener);
         } else {
-            if (actionType != null) {
-                view.setOnClickListener(null);
-            }
-            if (actionTypeLongClick != null) {
-                view.setOnLongClickListener(null);
-            }
+            if (actionType != null) view.setOnClickListener(null);
+            if (actionTypeLongClick != null) view.setOnLongClickListener(null);
         }
     }
 }

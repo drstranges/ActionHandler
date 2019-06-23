@@ -16,7 +16,10 @@
 
 package com.drextended.actionhandler.listener;
 
-import android.view.View;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.drextended.actionhandler.ActionArgs;
 
 /**
  * Interface definition for a callback to be invoked when an action is executed successfully.
@@ -26,10 +29,11 @@ public interface OnActionFiredListener {
     /**
      * Called after an action is executed successfully.
      *
-     * @param view       The View, which can be used for prepare any visual effect (like animation),
-     * @param actionType The action type, which appointed to the view
-     * @param model      The model, which  appointed to the view and should be handled
-     * @param result     The result of action
+     * @param args   The action params, which used while firing action
+     * @param result The result of action
      */
-    void onActionFired(View view, String actionType, Object model, Object result);
+    void onActionFired(
+            @NonNull ActionArgs args,
+            @Nullable Object result
+    );
 }

@@ -16,11 +16,10 @@
 
 package com.drextended.actionhandler.action;
 
-import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.view.View;
 
+import com.drextended.actionhandler.ActionArgs;
 import com.drextended.actionhandler.ActionHandler;
 
 import io.reactivex.Maybe;
@@ -57,8 +56,8 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
     }
 
     @Override
-    protected void onMakeRequest(final Context context, final View view, final String actionType, final M model, Object payload) {
-        final Maybe<RM> observableRequest = getRequest(context, view, actionType, model, payload);
+    protected void onMakeRequest(@NonNull final ActionArgs args) {
+        final Maybe<RM> observableRequest = getRequest(args);
         if (observableRequest == null) {
             if (mShowProgressEnabled) hideProgressDialog();
             return;
@@ -77,18 +76,18 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
                     @Override
                     public void onSuccess(RM response) {
                         hasResponse = true;
-                        onResponseSuccess(context, view, actionType, model, response);
+                        onResponseSuccess(args, response);
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        onResponseError(context, view, actionType, model, e);
+                        onResponseError(args, e);
                     }
 
                     @Override
                     public void onComplete() {
                         if (!hasResponse) {
-                            onResponseSuccess(context, view, actionType, model, null);
+                            onResponseSuccess(args, null);
                         }
                     }
                 }));
@@ -98,6 +97,7 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
      * Override this method if you want to apply custom schedulers for request flow.
      * By default {@code Schedulers.io()} applied for subscribeOn,
      * and {@code AndroidSchedulers.mainThread()} for observeOn.
+     *
      * @return transformer for apply schedulers
      */
     @NonNull
@@ -136,15 +136,10 @@ public abstract class RxRequestAction<RM, M> extends RequestAction<RM, M> implem
      * and {@code AndroidSchedulers.mainThread()} for observeOn. If you want to apply custom schedulers
      * override {@link #applySchedulers()}
      *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param actionType Type of the action which was executed.
-     * @param model      The model which was used in request.
-     * @param payload    The payload from {@link #makeRequest(Context, View, String, Object, Object)}.
+     * @param args The action params, which appointed to the view and actually actionType
      * @return request observable.
      */
     @Nullable
-    protected abstract Maybe<RM> getRequest(Context context, View view, String actionType, M model, @Nullable Object payload);
+    protected abstract Maybe<RM> getRequest(@NonNull ActionArgs args);
 
 }

@@ -18,14 +18,12 @@ package com.drextended.actionhandler.util;
 
 import android.app.Activity;
 import android.app.Application;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.ContextWrapper;
-import android.os.Build;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
 import android.view.Window;
+
+import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +67,8 @@ public class ProgressBarController {
 
     /**
      * Hides all dialogs and unregisters activity lifecycle callbacks
-     * @param app    application instance
+     *
+     * @param app application instance
      */
     public static void release(Application app) {
         if (sLifecycleCallbacks != null) {
@@ -105,14 +104,14 @@ public class ProgressBarController {
      * @param message the message to show in a dialog
      */
     public static void showProgressDialog(final Context context, String tag, final String message) {
-        final Activity activity = getActivity(context);
-        if (!isAlive(activity) || activity.isFinishing()) return;
+        final Activity activity = AUtils.getActivity(context);
+        if (!AUtils.isAlive(activity) || activity.isFinishing()) return;
         if (tag == null) tag = DEFAULT_TAG;
         ProgressDialog dialog;
         synchronized (sLock) {
             dialog = findDialog(tag);
 
-            if (!isAlive(dialog)) {
+            if (!AUtils.isAlive(dialog)) {
                 if (dialog != null) sDialogs.remove(dialog);
                 dialog = new ProgressDialog(context);
                 dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -133,6 +132,7 @@ public class ProgressBarController {
 
     /**
      * Hide dialog with specific tag
+     *
      * @param tag the tag to determine specific dialog
      */
     public static void hideProgressDialog(String tag) {
@@ -140,7 +140,7 @@ public class ProgressBarController {
         synchronized (sLock) {
             ProgressDialog dialog = findDialog(tag);
             if (dialog != null) {
-                if (isAlive(dialog) && dialog.isShowing()) dialog.dismiss();
+                if (AUtils.isAlive(dialog) && dialog.isShowing()) dialog.dismiss();
                 sDialogs.remove(dialog);
             }
         }
@@ -152,7 +152,7 @@ public class ProgressBarController {
     public static void hideProgressDialogsAll() {
         synchronized (sLock) {
             for (ProgressDialog dialog : sDialogs.keySet()) {
-                if (isAlive(dialog) && dialog.isShowing()) dialog.dismiss();
+                if (AUtils.isAlive(dialog) && dialog.isShowing()) dialog.dismiss();
             }
             sDialogs.clear();
         }
@@ -175,31 +175,6 @@ public class ProgressBarController {
             }
         }
         return result;
-    }
-
-    private static Activity getActivity(final Context context) {
-        if (context != null) {
-            Context baseContext = context;
-            while (!(baseContext instanceof Activity) && baseContext instanceof ContextWrapper) {
-                baseContext = ((ContextWrapper) baseContext).getBaseContext();
-            }
-            if (baseContext instanceof Activity) {
-                return (Activity) baseContext;
-            }
-        }
-        return null;
-    }
-
-    private static boolean isAlive(Dialog dialog) {
-        return dialog != null && isAlive(getActivity(dialog.getContext()));
-    }
-
-    private static boolean isAlive(final Activity activity) {
-        if (activity == null) return false;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            return !activity.isDestroyed();
-        }
-        return true;
     }
 
     private static class Tag {

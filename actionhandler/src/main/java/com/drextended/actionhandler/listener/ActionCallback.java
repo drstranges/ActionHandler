@@ -16,9 +16,11 @@
 
 package com.drextended.actionhandler.listener;
 
-import android.content.Context;
-import android.view.View;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import com.drextended.actionhandler.ActionArgs;
+import com.drextended.actionhandler.ActionParams;
 import com.drextended.actionhandler.action.Action;
 
 /**
@@ -29,29 +31,41 @@ public interface ActionCallback extends ActionInterceptor, ActionFireInterceptor
 
     abstract class SimpleActionCallback implements ActionCallback {
 
+        /**
+         * @inheritDocs
+         */
         @Override
-        public boolean onInterceptAction(Context context, View view, String actionType, Object model) {
+        public boolean onInterceptActionFire(@NonNull ActionParams actionParams, @Nullable String actionType, @NonNull Action action) {
             return false;
         }
 
+        /**
+         * @inheritDocs
+         */
         @Override
-        public boolean onInterceptActionFire(Context context, View view, String actionType, Object model, Action action) {
+        public boolean onInterceptAction(@NonNull ActionParams params) {
             return false;
         }
 
+        /**
+         * @inheritDocs
+         */
         @Override
-        public void onActionFired(View view, String actionType, Object model, Object result) {
-
+        public void onActionDismiss(@NonNull ActionArgs args, @Nullable String reason) {
         }
 
+        /**
+         * @inheritDocs
+         */
         @Override
-        public void onActionDismiss(String reason, View view, String actionType, Object model) {
-
+        public void onActionError(@NonNull ActionArgs args, @Nullable Throwable throwable) {
         }
 
+        /**
+         * @inheritDocs
+         */
         @Override
-        public void onActionError(Throwable throwable, View view, String actionType, Object model) {
-
+        public void onActionFired(@NonNull ActionArgs args, @Nullable Object result) {
         }
     }
 }

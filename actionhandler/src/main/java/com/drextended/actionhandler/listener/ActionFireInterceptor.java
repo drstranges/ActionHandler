@@ -16,14 +16,16 @@
 
 package com.drextended.actionhandler.listener;
 
-import android.content.Context;
-import android.view.View;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import com.drextended.actionhandler.ActionPair;
+import com.drextended.actionhandler.ActionParams;
 import com.drextended.actionhandler.action.Action;
 
 /**
  * Interface definition for a callback to be invoked right before specific action will be fired.
- * If {@link #onInterceptActionFire(Context, View, String, Object, Action)} return true
+ * If {@link #onInterceptActionFire(ActionParams, String, Action)} return true
  * then this action will not be fired.
  */
 public interface ActionFireInterceptor {
@@ -31,13 +33,17 @@ public interface ActionFireInterceptor {
      * Called right before specific action will be fired
      * If return true then this action will not be fired.
      *
-     *
-     * @param context    The context
-     * @param view       The view that was clicked.
-     * @param actionType The action type, which appointed to the view
-     * @param model      The model, which  appointed to the view and should be handled
-     * @param action     The action, which is prepared to fire
+     * @param actionParams The action params, which appointed to the view
+     * @param actionType   The action type, which is prepared to fire.
+     *                     May be different from actionParams.actionType
+     *                     when intercepted actionItem in CompositeAction
+     *                     or when actionType of fired action is null that match to any
+     * @param action       The action, which is prepared to fire.
      * @return true for intercept the action, false to handle the action in normal way.
      */
-    boolean onInterceptActionFire(Context context, final View view, final String actionType, final Object model, final Action action);
+    boolean onInterceptActionFire(
+            @NonNull ActionParams actionParams,
+            @Nullable String actionType,
+            @NonNull Action action
+    );
 }

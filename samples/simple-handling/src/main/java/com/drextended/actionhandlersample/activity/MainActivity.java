@@ -16,16 +16,17 @@
 
 package com.drextended.actionhandlersample.activity;
 
-import android.content.Context;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.drextended.actionhandler.ActionArgs;
 import com.drextended.actionhandler.ActionHandler;
+import com.drextended.actionhandler.ActionParams;
 import com.drextended.actionhandler.action.CompositeAction;
 import com.drextended.actionhandler.action.CompositeAction.ActionItem;
 import com.drextended.actionhandler.action.DialogAction;
@@ -33,7 +34,7 @@ import com.drextended.actionhandler.listener.ActionInterceptor;
 import com.drextended.actionhandler.listener.OnActionDismissListener;
 import com.drextended.actionhandler.listener.OnActionErrorListener;
 import com.drextended.actionhandler.listener.OnActionFiredListener;
-import com.drextended.actionhandler.util.OnActionClickListener;
+import com.drextended.actionhandler.util.ViewOnActionClickListener;
 import com.drextended.actionhandlersample.ActionType;
 import com.drextended.actionhandlersample.R;
 import com.drextended.actionhandlersample.action.OpenSecondActivity;
@@ -65,12 +66,7 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
                 .addAction(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), showToastAction))
                 .addAction(ActionType.FIRE_REQUEST_ACTION, new SampleRequestAction())
                 .addAction(ActionType.FIRE_COMPOSITE_ACTION,
-                        new CompositeAction<String>(new CompositeAction.TitleProvider<String>() {
-                            @Override
-                            public String getTitle(Context context, String model) {
-                                return "Title (" + model + ")";
-                            }
-                        },
+                        new CompositeAction<>((ctx, model) -> "Title (" + model + ")",
                                 new ActionItem(ActionType.OPEN_NEW_SCREEN, new OpenSecondActivity(), R.drawable.ic_touch_app_black_24dp, 0, R.string.fire_intent_action),
                                 new ActionItem(ActionType.FIRE_ACTION, showToastAction, R.drawable.ic_announcement_black_24dp, R.color.greenLight, R.string.fire_simple_action),
                                 new ActionItem(ActionType.FIRE_DIALOG_ACTION, DialogAction.wrap(getString(R.string.action_dialog_message), showToastAction), R.drawable.ic_announcement_black_24dp, R.color.amber, R.string.fire_dialog_action),
@@ -85,35 +81,31 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
         initView();
     }
 
-    @SuppressWarnings("ConstantConditions")
     private void initView() {
-        mLabelView = (TextView) findViewById(R.id.label);
+        mLabelView = findViewById(R.id.label);
 
-        findViewById(R.id.button1).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mActionHandler.onActionClick(v, ActionType.OPEN_NEW_SCREEN, getSampleModel());
-            }
-        });
+        findViewById(R.id.button1).setOnClickListener(
+                v -> mActionHandler.onActionClick(v, ActionType.OPEN_NEW_SCREEN, getSampleModel(), null)
+        );
 
         findViewById(R.id.button2).setOnClickListener(
-                new OnActionClickListener(mActionHandler, getSampleModel(), ActionType.FIRE_ACTION)
+                new ViewOnActionClickListener(mActionHandler, getSampleModel(), ActionType.FIRE_ACTION)
         );
 
         findViewById(R.id.button3).setOnClickListener(
-                new OnActionClickListener(mActionHandler, getSampleModel(), ActionType.FIRE_DIALOG_ACTION)
+                new ViewOnActionClickListener(mActionHandler, getSampleModel(), ActionType.FIRE_DIALOG_ACTION)
         );
 
         findViewById(R.id.button4).setOnClickListener(
-                new OnActionClickListener(mActionHandler, getSampleModel(), ActionType.FIRE_REQUEST_ACTION)
+                new ViewOnActionClickListener(mActionHandler, getSampleModel(), ActionType.FIRE_REQUEST_ACTION)
         );
 
         findViewById(R.id.button5).setOnClickListener(
-                new OnActionClickListener(mActionHandler, getSampleModel(), ActionType.FIRE_COMPOSITE_ACTION)
+                new ViewOnActionClickListener(mActionHandler, getSampleModel(), ActionType.FIRE_COMPOSITE_ACTION)
         );
 
         findViewById(R.id.button5).setOnLongClickListener(
-                new OnActionClickListener(mActionHandler, getSampleModel(), ActionType.FIRE_DIALOG_ACTION)
+                new ViewOnActionClickListener(mActionHandler, getSampleModel(), ActionType.FIRE_DIALOG_ACTION)
         );
     }
 
@@ -123,8 +115,8 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
     }
 
     @Override
-    public boolean onInterceptAction(Context context, View view, String actionType, Object model) {
-        switch (actionType) {
+    public boolean onInterceptAction(@NonNull ActionParams params) {
+        switch (params.actionType) {
             case ActionType.OPEN_NEW_SCREEN:
                 final boolean consumed = mClickCount++ % 7 == 0;
                 if (consumed) {
@@ -139,8 +131,9 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
     }
 
     @Override
-    public void onActionFired(View view, String actionType, Object model, Object result) {
-        switch (actionType) {
+    public void onActionFired(@NonNull ActionArgs args, @Nullable Object result) {
+        if (args.fireActionType == null) return;
+        switch (args.fireActionType) {
             case ActionType.OPEN_NEW_SCREEN:
                 setLastActionText("Intent Action");
                 break;
@@ -157,13 +150,17 @@ public class MainActivity extends AppCompatActivity implements OnActionFiredList
     }
 
     @Override
-    public void onActionError(Throwable throwable, View view, String actionType, Object model) {
-        Toast.makeText(getApplicationContext(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
+    public void onActionError(@NonNull ActionArgs args, @Nullable Throwable throwable) {
+        Toast.makeText(
+                this,
+                throwable == null ? "Error" : throwable.getMessage(),
+                Toast.LENGTH_SHORT
+        ).show();
     }
 
     @Override
-    public void onActionDismiss(String reason, View view, String actionType, Object model) {
-        Toast.makeText(getApplicationContext(), "Action dismissed. Reason: " + reason, Toast.LENGTH_SHORT).show();
+    public void onActionDismiss(@NonNull ActionArgs args, @Nullable String reason) {
+        Toast.makeText(this, "Action dismissed. Reason: " + reason, Toast.LENGTH_SHORT).show();
     }
 
     private void setLastActionText(String label) {

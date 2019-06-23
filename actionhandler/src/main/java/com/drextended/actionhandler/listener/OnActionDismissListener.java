@@ -16,7 +16,10 @@
 
 package com.drextended.actionhandler.listener;
 
-import android.view.View;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.drextended.actionhandler.ActionArgs;
 
 /**
  * Interface definition for a callback to be invoked when an action was dismissed.
@@ -25,10 +28,13 @@ public interface OnActionDismissListener {
 
     /**
      * Called when error occurred while an action is executing.
-     * @param reason    The reason to dismiss
-     * @param view       The View, which were used for executing the action,
-     * @param actionType The action type, which were used for executing the action
-     * @param model      The model, which were used for executing the action
+     *
+     * @param args   The action params, which appointed to the view
+     *               and actual fired action type
+     * @param reason The reason to dismiss
      */
-    void onActionDismiss(String reason, View view, String actionType, Object model);
+    void onActionDismiss(
+            @NonNull ActionArgs args,
+            @Nullable String reason
+    );
 }

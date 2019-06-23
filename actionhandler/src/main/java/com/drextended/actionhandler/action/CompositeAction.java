@@ -19,16 +19,6 @@ package com.drextended.actionhandler.action;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
-import androidx.annotation.ColorRes;
-import androidx.annotation.DrawableRes;
-import androidx.annotation.LayoutRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.drawable.DrawableCompat;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.PopupMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,6 +30,18 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.ColorRes;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
+
+import com.drextended.actionhandler.ActionArgs;
 import com.drextended.actionhandler.R;
 import com.drextended.actionhandler.listener.ActionFireInterceptor;
 import com.drextended.actionhandler.listener.OnActionDismissListener;
@@ -61,7 +63,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @param <M> model type
  */
 @SuppressWarnings("SameParameterValue")
-public class CompositeAction<M> extends BaseAction<M> {
+public class CompositeAction<M> extends BaseAction {
 
     /**
      * Actions for show in a menu (dialog or popup window) and fire if is accepted
@@ -79,10 +81,10 @@ public class CompositeAction<M> extends BaseAction<M> {
 
     // Flag for settings how a single action item should be fired.
     // True for show a menu, false for fire action directly.
-    protected boolean mDisplayDialogForSingleAction = true;
+    protected boolean mDisplayDialogForSingleAction;
 
     // True for show non accepted actions in menu as disabled, false to hide them.
-    protected boolean mShowNonAcceptedActions = false;
+    protected boolean mShowNonAcceptedActions;
 
     /**
      * Specific type of action which can contain a few other actions, show them as menu items,
@@ -186,6 +188,7 @@ public class CompositeAction<M> extends BaseAction<M> {
 
     /**
      * Flag for settings how a single action item should be fired.
+     *
      * @param displayDialogForSingleAction true for show a menu, false for fire action directly.
      */
     public void setDisplayDialogForSingleAction(boolean displayDialogForSingleAction) {
@@ -194,6 +197,7 @@ public class CompositeAction<M> extends BaseAction<M> {
 
     /**
      * Flag for settings how non accepted action item should be showed in the menu.
+     *
      * @param showNonAcceptedActions true for show non accepted actions in menu as disabled, false to hide them.
      */
     public void setShowNonAcceptedActions(boolean showNonAcceptedActions) {
@@ -220,7 +224,7 @@ public class CompositeAction<M> extends BaseAction<M> {
      * @param model The model to check if it can be handled.
      * @return Count for actions which can handle given model
      */
-    private int getAcceptedActionCount(Object model) {
+    private int getAcceptedActionCount(@Nullable Object model) {
         int count = 0;
         for (ActionItem action : mActions) {
             if (action.action.isModelAccepted(model)) count++;
@@ -234,7 +238,8 @@ public class CompositeAction<M> extends BaseAction<M> {
      * @param model The model to check if it can be handled.
      * @return first action which can handle given model
      */
-    private ActionItem getFirstAcceptedActionItem(M model) {
+    @Nullable
+    private ActionItem getFirstAcceptedActionItem(@Nullable Object model) {
         for (ActionItem action : mActions) {
             if (action.action.isModelAccepted(model)) return action;
         }
@@ -242,46 +247,49 @@ public class CompositeAction<M> extends BaseAction<M> {
     }
 
     @Override
-    public void onFireAction(Context context, @Nullable View view, @Nullable String actionType, @Nullable M model) {
-        if (!mDisplayDialogForSingleAction && getAcceptedActionCount(model) == 1) {
-            final ActionItem actionItem = getFirstAcceptedActionItem(model);
-            fireActionItem(context, view, actionType, model, actionItem);
+    public void onFireAction(@NonNull ActionArgs args) {
+        if (!mDisplayDialogForSingleAction && getAcceptedActionCount(args.params.model) == 1) {
+            final ActionItem actionItem = getFirstAcceptedActionItem(args.params.model);
+            if (actionItem != null) {
+                fireActionItem(args, actionItem);
+            }
         } else {
-            showMenu(context, view, actionType, model);
+            showMenu(args);
         }
     }
 
-    private void fireActionItem(Context context, @Nullable View view, @Nullable String actionType, @Nullable M model, ActionItem actionItem) {
-        if (actionItem != null && ! interceptActionFire(context, view, actionItem.actionType, model, actionItem.action)) {
-            notifyOnActionFired(view, actionType, model);
-            //noinspection unchecked
-            actionItem.action.onFireAction(context, view, actionItem.actionType, model);
+    private void fireActionItem(@NonNull ActionArgs args, @NonNull ActionItem actionItem) {
+        if (!interceptActionFire(args.params, actionItem.actionType, actionItem.action)) {
+            notifyOnActionFired(args);
+            actionItem.action.onFireAction(new ActionArgs(args.params, actionItem.actionType));
         }
     }
 
     /**
      * Show menu with list of actions, which can handle this {@param model}.
      *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The View, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire.
-     * @param actionType The action type
-     * @param model      The model which should be handled by the action.
+     * @param args The action params, which appointed to the view
+     *             and type of the action which was actually executed.
      */
-    private void showMenu(final Context context, final View view, String actionType, final M model) {
+    protected void showMenu(@NonNull final ActionArgs args) {
 
         // prepare menu items
-        final List<ActionItem> menuItems = prepareMenuListItems(model);
+        final List<ActionItem> menuItems = prepareMenuListItems(args.params.model);
 
         if (mShowAsPopupMenuEnabled) {
+            final View view = args.params.tryGetView();
+            if (view == null) {
+                notifyOnActionError(args, new Exception("Attempt to show PopupMenu without target view"));
+                return;
+            }
             //show as popup menu
-            PopupMenu popupMenu = buildPopupMenu(context, view, actionType, model, menuItems);
+            PopupMenu popupMenu = buildPopupMenu(args, view, menuItems);
             popupMenu.show();
-
         } else {
             //show as alert dialog with single choice items
-            String title = mTitleProvider.getTitle(context, model);
-            AlertDialog.Builder builder = buildAlertDialog(context, view, actionType, model, title, menuItems);
+            //noinspection unchecked
+            String title = mTitleProvider.getTitle(args.params.appContext, (M) args.params.model);
+            AlertDialog.Builder builder = buildAlertDialog(args, menuItems, title);
             final AlertDialog dialog = builder.create();
             if (mShowNonAcceptedActions) {
                 final AdapterView.OnItemClickListener clickListener = dialog.getListView().getOnItemClickListener();
@@ -289,7 +297,7 @@ public class CompositeAction<M> extends BaseAction<M> {
                     dialog.getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            if (menuItems.get(position).action.isModelAccepted(model)) {
+                            if (menuItems.get(position).action.isModelAccepted(args.params.model)) {
                                 clickListener.onItemClick(parent, view, position, id);
                             }
                         }
@@ -310,12 +318,11 @@ public class CompositeAction<M> extends BaseAction<M> {
      * @return list of menu items
      */
     @NonNull
-    protected List<ActionItem> prepareMenuListItems(M model) {
+    protected List<ActionItem> prepareMenuListItems(@Nullable Object model) {
         if (mShowNonAcceptedActions) return Arrays.asList(mActions);
         int count = mActions.length;
         final List<ActionItem> menuItems = new ArrayList<>(count);
-        for (int index = 0; index < count; index++) {
-            final ActionItem item = mActions[index];
+        for (final ActionItem item : mActions) {
             if (item.action.isModelAccepted(model)) {
                 menuItems.add(item);
             }
@@ -326,24 +333,23 @@ public class CompositeAction<M> extends BaseAction<M> {
     /**
      * Prepares popup menu to show given menu items
      *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The View, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire.
-     * @param actionType The action type
-     * @param model      The model which should be handled by the action.
-     * @param menuItems  list of items which will be shown in a menu
+     * @param args      The action params, which appointed to the view and actually actionType
+     * @param view      The View, which can be used for prepare any visual effect (like animation),
+     *                  Generally it is that view which was clicked and initiated action to fire.
+     * @param menuItems list of items which will be shown in a menu
      * @return popup menu to show given menu items
      */
-    protected PopupMenu buildPopupMenu(final Context context, final View view, final String actionType, final M model, final List<ActionItem> menuItems) {
+    protected PopupMenu buildPopupMenu(@NonNull final ActionArgs args, @NonNull View view, @NonNull final List<ActionItem> menuItems) {
+        Context context = view.getContext();
         final PopupMenu popupMenu = new PopupMenu(context, view);
         final Menu menu = popupMenu.getMenu();
         int count = menuItems.size();
         for (int index = 0; index < count; index++) {
             final ActionItem item = menuItems.get(index);
             //noinspection unchecked
-            menu.add(0, index, 0, item.titleProvider.getTitle(context, model));
+            menu.add(0, index, 0, item.titleProvider.getTitle(context, args.params.model));
             if (mShowNonAcceptedActions) {
-                menu.getItem(index).setEnabled(item.action.isModelAccepted(model));
+                menu.getItem(index).setEnabled(item.action.isModelAccepted(args.params.model));
             }
         }
         final AtomicBoolean activated = new AtomicBoolean(false);
@@ -353,9 +359,7 @@ public class CompositeAction<M> extends BaseAction<M> {
                 activated.set(true);
                 final ActionItem actionItem = menuItems.get(item.getItemId());
                 if (item.isEnabled()) {
-                    fireActionItem(context, view, actionType, model, actionItem);
-                } else {
-                    notifyOnActionDismiss("The model is not accepted for selected action", view, actionType, model);
+                    fireActionItem(args, actionItem);
                 }
                 return true;
             }
@@ -364,7 +368,7 @@ public class CompositeAction<M> extends BaseAction<M> {
             @Override
             public void onDismiss(PopupMenu menu) {
                 if (!activated.get()) {
-                    notifyOnActionDismiss("CompositeAction menu dismissed", view, actionType, model);
+                    notifyOnActionDismiss(args, "CompositeAction menu dismissed");
                 }
             }
         });
@@ -374,33 +378,38 @@ public class CompositeAction<M> extends BaseAction<M> {
     /**
      * Prepares alert dialog to show given menu items
      *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The View, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire.
-     * @param actionType The action type
-     * @param model      The model which should be handled by the action.
-     * @param title      The title of the dialog.
-     * @param menuItems  list of items which will be shown in a menu
+     * @param args      The action params, which appointed to the view and actually actionType
+     * @param menuItems list of items which will be shown in a menu
+     * @param title     The title of the dialog.
      * @return alert dialog builder to show given menu items
      */
-    protected AlertDialog.Builder buildAlertDialog(final Context context, final View view, final String actionType, final M model, String title, final List<ActionItem> menuItems) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(context)
+    protected AlertDialog.Builder buildAlertDialog(
+            @NonNull final ActionArgs args,
+            @NonNull final List<ActionItem> menuItems,
+            @Nullable String title
+    ) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(args.params.getViewOrAppContext())
                 .setTitle(title);
 
-        builder.setAdapter(new MenuItemsAdapter(getMenuItemLayoutResId(), menuItems, model, mShowNonAcceptedActions), new DialogInterface.OnClickListener() {
+        final Object model = args.params.model;
+        MenuItemsAdapter adapter = new MenuItemsAdapter(
+                getMenuItemLayoutResId(),
+                menuItems,
+                model,
+                mShowNonAcceptedActions
+        );
+        builder.setAdapter(adapter, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 final ActionItem actionItem = menuItems.get(which);
                 if (actionItem.action.isModelAccepted(model)) {
-                    fireActionItem(context, view, actionType, model, actionItem);
-                } else {
-                    notifyOnActionDismiss("Model is not acceptable for this action", view, actionType, model);
+                    fireActionItem(args, actionItem);
                 }
             }
         }).setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
-                notifyOnActionDismiss("CompositeAction menu cancelled", view, actionType, model);
+                notifyOnActionDismiss(args, "CompositeAction menu cancelled");
             }
         });
         return builder;
@@ -409,6 +418,7 @@ public class CompositeAction<M> extends BaseAction<M> {
     /**
      * Returns layout res id for menu item.
      * Has to contain at least TextView with id "@android:id/text1" and ImageView with id "@android:id/icon".
+     *
      * @return the layout res id for menu item.
      */
     protected int getMenuItemLayoutResId() {
@@ -607,10 +617,10 @@ public class CompositeAction<M> extends BaseAction<M> {
         }
 
         /**
-         * @param actionType         The action type associated with this item.
-         * @param action             The action associated with this item.
-         * @param iconProvider       The provider for icon associated with this item.
-         * @param titleProvider      The provider for corresponding menu item's title
+         * @param actionType    The action type associated with this item.
+         * @param action        The action associated with this item.
+         * @param iconProvider  The provider for icon associated with this item.
+         * @param titleProvider The provider for corresponding menu item's title
          */
         public ActionItem(String actionType, Action action, IconProvider<M> iconProvider, TitleProvider<M> titleProvider) {
             this.iconProvider = iconProvider;
@@ -629,11 +639,12 @@ public class CompositeAction<M> extends BaseAction<M> {
         /**
          * Provide adjustable title
          *
-         * @param context The Context
-         * @param model   The model, which should be handled
+         * @param ctx   The Context
+         * @param model The model, which should be handled
          * @return the title, suitable for given model
          */
-        String getTitle(Context context, M model);
+        @Nullable
+        String getTitle(@NonNull Context ctx, @Nullable M model);
     }
 
     /**
@@ -649,7 +660,8 @@ public class CompositeAction<M> extends BaseAction<M> {
          * @param model   The model, which should be handled
          * @return the icon drawable, suitable for given item
          */
-        Drawable getIconDrawable(Context context, M model);
+        @Nullable
+        Drawable getIconDrawable(@NonNull Context context, @Nullable M model);
     }
 
     /**
@@ -672,7 +684,7 @@ public class CompositeAction<M> extends BaseAction<M> {
         }
 
         @Override
-        public String getTitle(Context context, M model) {
+        public String getTitle(@NonNull Context context, M model) {
             return mTitleResId == 0 ? null : context.getString(mTitleResId);
         }
     }
@@ -704,7 +716,7 @@ public class CompositeAction<M> extends BaseAction<M> {
         }
 
         @Override
-        public Drawable getIconDrawable(Context context, M model) {
+        public Drawable getIconDrawable(@NonNull Context context, M model) {
             if (mIconResId != 0) {
                 Drawable drawable = ContextCompat.getDrawable(context, mIconResId);
                 if (drawable != null) {

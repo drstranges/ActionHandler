@@ -23,10 +23,10 @@ import androidx.annotation.Nullable;
 
 import com.drextended.actionhandler.listener.ActionClickListener;
 
-public class OnActionClickListener implements View.OnClickListener, View.OnLongClickListener {
+public class ViewOnActionClickListener implements View.OnClickListener, View.OnLongClickListener {
 
     @NonNull
-    private final ActionClickListener actionClickListener;
+    private final ActionClickListener actionHandler;
     @Nullable
     private final String actionType;
     @Nullable
@@ -35,49 +35,54 @@ public class OnActionClickListener implements View.OnClickListener, View.OnLongC
     private final Object model;
     @Nullable
     private final Object modelLongClick;
+    @Nullable
+    private final Object actionTypeTag;
 
-    public OnActionClickListener(
-            @NonNull ActionClickListener actionClickListener,
+    public ViewOnActionClickListener(
+            @NonNull ActionClickListener actionHandler,
             @Nullable String actionType,
-            @Nullable Object model,
             @Nullable String actionTypeLongClick,
-            @Nullable Object modelLongClick) {
+            @Nullable Object model,
+            @Nullable Object modelLongClick,
+            @Nullable Object actionTypeTag
+    ) {
 
-        this.actionClickListener = actionClickListener;
+        this.actionHandler = actionHandler;
         this.actionType = actionType;
         this.actionTypeLongClick = actionTypeLongClick;
         this.model = model;
         this.modelLongClick = modelLongClick;
+        this.actionTypeTag = actionTypeTag;
     }
 
-    public OnActionClickListener(
-            @NonNull ActionClickListener actionClickListener,
+    public ViewOnActionClickListener(
+            @NonNull ActionClickListener actionHandler,
             @Nullable Object model,
             @Nullable String actionType
     ) {
-        this(actionClickListener, actionType, model, actionType, model);
+        this(actionHandler, actionType, actionType, model, model, null);
     }
 
-    public OnActionClickListener(
-            @NonNull ActionClickListener actionClickListener,
+    public ViewOnActionClickListener(
+            @NonNull ActionClickListener actionHandler,
             @Nullable Object model,
             @Nullable String actionType,
             @Nullable String actionTypeLongClick
     ) {
-        this(actionClickListener, actionType, model, actionTypeLongClick, model);
+        this(actionHandler, actionType, actionTypeLongClick, model, model, null);
     }
 
     @Override
     public void onClick(View v) {
         if (actionType != null) {
-            actionClickListener.onActionClick(v, actionType, model);
+            actionHandler.onActionClick(v, actionType, model, actionTypeTag);
         }
     }
 
     @Override
     public boolean onLongClick(View v) {
         if (actionTypeLongClick != null) {
-            actionClickListener.onActionClick(v, actionTypeLongClick, modelLongClick);
+            actionHandler.onActionClick(v, actionTypeLongClick, modelLongClick, actionTypeTag);
             return true;
         }
         return false;

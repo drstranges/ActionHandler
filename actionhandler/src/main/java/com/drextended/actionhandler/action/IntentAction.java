@@ -19,14 +19,15 @@ package com.drextended.actionhandler.action;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import android.view.View;
 
+import com.drextended.actionhandler.ActionArgs;
 import com.drextended.actionhandler.util.AcceptCondition;
 
 /**
@@ -34,7 +35,7 @@ import com.drextended.actionhandler.util.AcceptCondition;
  *
  * @param <M> type of model, which can be handled
  */
-public abstract class IntentAction<M> extends BaseAction<M> {
+public abstract class IntentAction<M> extends BaseAction {
     /**
      * Type of intent:
      * {@link IntentType#START_ACTIVITY}, {@link IntentType#START_SERVICE}
@@ -59,71 +60,64 @@ public abstract class IntentAction<M> extends BaseAction<M> {
     }
 
     @Override
-    public void onFireAction(Context context, @Nullable View view, String actionType, @Nullable M model) {
-        final Intent intent = getIntent(view, context, actionType, model);
-        if (intent == null) return;
-
+    public void onFireAction(@NonNull final ActionArgs args) {
+        final Intent intent = getIntent(args);
+        if (intent == null) {
+            notifyOnActionDismiss(args, "No intent to fire!");
+            return;
+        }
+        Context context = args.params.getViewOrAppContext();
         try {
             switch (mIntentType) {
                 case START_ACTIVITY:
-                    startActivity(context, view, intent);
+                    startActivity(context, intent, args);
                     break;
                 case START_SERVICE:
-                    startService(context, intent);
+                    startService(context, intent, args);
                     break;
                 case STOP_SERVICE:
-                    stopService(context, intent);
+                    stopService(context, intent, args);
                     break;
                 case SEND_BROADCAST:
-                    sendBroadcast(context, intent);
+                    sendBroadcast(context, intent, args);
                     break;
                 case SEND_LOCAL_BROADCAST:
-                    sendLocalBroadcast(context, intent);
+                    sendLocalBroadcast(context, intent, args);
                     break;
             }
 
-            notifyOnActionFired(view, actionType, model);
+            notifyOnActionFired(args);
         } catch (Exception e) {
             e.printStackTrace();
-            onError(e, view, actionType, model);
+            onError(args, e);
         }
     }
 
     /**
-     * Route exceptions from {@link #startActivity}, {@link #startService(Context, Intent)} and
-     * {@link #stopService(Context, Intent)}
+     * Route exceptions from {@link #startActivity}, {@link #startService(Context, Intent, ActionArgs)} and
+     * {@link #stopService(Context, Intent, ActionArgs)}
      * Generally can be {@link ActivityNotFoundException} or {@link SecurityException}
      *
-     * @param throwable  The exception, which was occurred while {@link #onFireAction(Context, View, String, Object)}
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param actionType Type of the action which was executed. Can be null.
-     * @param model      The model which should be handled by the action. Can be null.
+     * @param args      The action params, which appointed to the view and actually actionType
+     * @param throwable The exception, which was occurred while {@link #onFireAction(ActionArgs)}
      */
-    protected void onError(Exception throwable, View view, String actionType, M model) {
-        notifyOnActionError(throwable, view, actionType, model);
+    protected void onError(@NonNull ActionArgs args, @Nullable Exception throwable) {
+        notifyOnActionError(args, throwable);
     }
 
     /**
      * If {@link #mIntentType} was set as {@link IntentType#START_ACTIVITY}
-     * and {@link #getIntent(View, Context, String, Object)} return not null then this method called.
-     * If build Sdk version below 16 then {@link Context#startActivity(Intent)} will be used,
-     * else {@link Context#startActivity(Intent, Bundle)} will be used with {@code ActivityOptionsCompat}
-     * as second argument, provided by {@link #prepareTransition(Context, View, Intent)} method.
+     * and {@link #getIntent(ActionArgs)} return not null then this method called.
      *
      * @param context The Context, which generally get from view by {@link View#getContext()}
-     * @param view    The view, which can be used for prepare any visual effect (like animation),
-     *                Generally it is that view which was clicked and initiated action to fire
-     * @param intent  The intent provided by {@link #getIntent(View, Context, String, Object)}
+     * @param intent  The intent provided by {@link #getIntent(ActionArgs)}
+     * @param args    The action params, which appointed to the view and actually actionType
      */
-    protected void startActivity(Context context, View view, Intent intent) throws ActivityNotFoundException {
-        if (Build.VERSION.SDK_INT >= 16) {
-            ActivityOptionsCompat activityOptions = prepareTransition(context, view, intent);
-            if (activityOptions != null) {
-                context.startActivity(intent, activityOptions.toBundle());
-                return;
-            }
-        }
+    protected void startActivity(
+            @NonNull Context context,
+            @NonNull Intent intent,
+            @NonNull final ActionArgs args
+    ) throws ActivityNotFoundException {
         context.startActivity(intent);
     }
 
@@ -132,9 +126,14 @@ public abstract class IntentAction<M> extends BaseAction<M> {
      * Override this method if you need specific behaviour.
      *
      * @param context The Context, which generally get from view by {@link View#getContext()}
-     * @param intent  The intent to start service, provided by {@link #getIntent(View, Context, String, Object)}
+     * @param intent  The intent to start service, provided by {@link #getIntent(ActionArgs)}
+     * @param args    The action params, which appointed to the view and actually actionType
      */
-    protected void startService(Context context, Intent intent) throws SecurityException {
+    protected void startService(
+            @NonNull Context context,
+            @NonNull Intent intent,
+            @NonNull final ActionArgs args
+    ) throws SecurityException {
         context.startService(intent);
     }
 
@@ -143,9 +142,14 @@ public abstract class IntentAction<M> extends BaseAction<M> {
      * Override this method if you need specific behaviour
      *
      * @param context The Context, which generally get from view by {@link View#getContext()}
-     * @param intent  The intent to stop service, provided by {@link #getIntent(View, Context, String, Object)}
+     * @param intent  The intent to stop service, provided by {@link #getIntent(ActionArgs)}
+     * @param args    The action params, which appointed to the view and actually actionType
      */
-    protected void stopService(Context context, Intent intent) throws SecurityException {
+    protected void stopService(
+            @NonNull Context context,
+            @NonNull Intent intent,
+            @NonNull final ActionArgs args
+    ) throws SecurityException {
         context.stopService(intent);
     }
 
@@ -154,9 +158,14 @@ public abstract class IntentAction<M> extends BaseAction<M> {
      * Override this method if you need specific behaviour.
      *
      * @param context The Context, which generally get from view by {@link View#getContext()}
-     * @param intent  The Intent to broadcast, provided by {@link #getIntent(View, Context, String, Object)}
+     * @param intent  The Intent to broadcast, provided by {@link #getIntent(ActionArgs)}
+     * @param args    The action params, which appointed to the view and actually actionType
      */
-    protected void sendBroadcast(Context context, Intent intent) {
+    protected void sendBroadcast(
+            @NonNull Context context,
+            @NonNull Intent intent,
+            @NonNull final ActionArgs args
+    ) {
         context.sendBroadcast(intent);
     }
 
@@ -165,9 +174,14 @@ public abstract class IntentAction<M> extends BaseAction<M> {
      * Override this method if you need specific behaviour.
      *
      * @param context The Context, which generally get from view by {@link View#getContext()}
-     * @param intent  The Intent to broadcast, provided by {@link #getIntent(View, Context, String, Object)}
+     * @param intent  The Intent to broadcast, provided by {@link #getIntent(ActionArgs)}
+     * @param args    The action params, which appointed to the view and actually actionType
      */
-    protected void sendLocalBroadcast(Context context, Intent intent) {
+    protected void sendLocalBroadcast(
+            @NonNull Context context,
+            @NonNull Intent intent,
+            @NonNull final ActionArgs args
+    ) {
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
@@ -175,33 +189,12 @@ public abstract class IntentAction<M> extends BaseAction<M> {
      * Provide an intent for use for start activity, start service or send broadcast.
      * You cat define how to use this intent by setting {@link #mIntentType} in {@link #IntentAction(IntentType)}
      *
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param actionType Type of the action which was executed. Can be null.
-     * @param model      The model which should be handled by the action. Can be null.
+     * @param args The action params, which appointed to the view and actually actionType
      * @return intent for use in role defined by {@link #mIntentType} in {@link #IntentAction(IntentType)}
      * if null action will not be fired.
      */
     @Nullable
-    public abstract Intent getIntent(@Nullable View view, Context context, String actionType, M model);
-
-    /**
-     * Additional options for how the Activity should be started.
-     * May be null if there are no options.
-     * Used only if {@link #mIntentType} set as {@link IntentType#START_ACTIVITY} and build Sdk version greater 15.
-     * Intended for settings activity transition or shared element transition
-     *
-     * @param context The Context, which generally get from view by {@link View#getContext()}
-     * @param view    The view, which can be used for prepare shared element transition.
-     *                Generally it is that view which was clicked and initiated action to fire
-     * @param intent  The intent, provided by {@link #getIntent(View, Context, String, Object)}
-     * @return options for how the Activity should be started. Used to pass in
-     * {@link Context#startActivity(Intent, Bundle)} as second argument.
-     */
-    protected ActivityOptionsCompat prepareTransition(Context context, View view, Intent intent) {
-        return null;
-    }
+    public abstract Intent getIntent(@NonNull final ActionArgs args);
 
     /**
      * Create simple intent action
@@ -255,7 +248,7 @@ public abstract class IntentAction<M> extends BaseAction<M> {
 
         @Nullable
         @Override
-        public Intent getIntent(@Nullable View view, Context context, String actionType, Object model) {
+        public Intent getIntent(@NonNull ActionArgs args) {
             return mIntent;
         }
     }

@@ -16,12 +16,13 @@
 
 package com.drextended.actionhandler.listener;
 
-import android.content.Context;
-import android.view.View;
+import androidx.annotation.NonNull;
+
+import com.drextended.actionhandler.ActionParams;
 
 /**
  * Interface definition for a callback to be invoked after a view with an action is clicked
- * and before action type handling started. If {@link #onInterceptAction(Context, View, String, Object)} return true
+ * and before action type handling started. If {@link #onInterceptAction(ActionParams)} return true
  * then this action type will not be handled.
  */
 public interface ActionInterceptor {
@@ -29,12 +30,8 @@ public interface ActionInterceptor {
      * Called after a view with an action is clicked
      * and before action handling started. If return true then this action will not be handled.
      *
-     *
-     * @param context    The context
-     * @param view       The view that was clicked.
-     * @param actionType The action type, which appointed to the view
-     * @param model      The model, which  appointed to the view and should be handled
+     * @param params The actionParams
      * @return true for intercept the action, false to handle the action in normal way.
      */
-    boolean onInterceptAction(Context context, final View view, final String actionType, final Object model);
+    boolean onInterceptAction(@NonNull ActionParams params);
 }

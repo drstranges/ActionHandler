@@ -17,13 +17,14 @@
 package com.drextended.databinding.action;
 
 import android.animation.ObjectAnimator;
-import android.content.Context;
-import androidx.annotation.Nullable;
 import android.view.View;
 
-import com.drextended.actionhandler.action.Action;
+import androidx.annotation.NonNull;
 
-public class SimpleAnimationAction implements Action {
+import com.drextended.actionhandler.ActionArgs;
+import com.drextended.actionhandler.action.BaseAction;
+
+public class SimpleAnimationAction extends BaseAction {
 
     @Override
     public boolean isModelAccepted(Object model) {
@@ -31,11 +32,16 @@ public class SimpleAnimationAction implements Action {
     }
 
     @Override
-    public void onFireAction(Context context, @Nullable View view, String actionType, @Nullable Object model) {
-        if (view == null) return;
+    public void onFireAction(@NonNull ActionArgs args) {
+        View view = args.params.tryGetView();
+        if (view == null) {
+            notifyOnActionDismiss(args, "No view");
+            return;
+        }
         ObjectAnimator
                 .ofFloat(view, "translationX", 0, 25, -25, 25, -25, 15, -15, 6, -6, 0)
                 .setDuration(200)
                 .start();
+        notifyOnActionFired(args);
     }
 }

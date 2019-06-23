@@ -19,10 +19,13 @@ package com.drextended.actionhandler.action;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+
+import com.drextended.actionhandler.ActionArgs;
+import com.drextended.actionhandler.ActionParams;
 import com.drextended.actionhandler.listener.ActionFireInterceptor;
 import com.drextended.actionhandler.listener.OnActionDismissListener;
 import com.drextended.actionhandler.listener.OnActionErrorListener;
@@ -33,55 +36,51 @@ import com.drextended.actionhandler.listener.OnActionFiredListener;
  * You can extend this class for make custom action on just wrap another action
  * using {@link #wrap(String, Action)}
  *
- * @param <M>    type of model to handle
+ * @param <M> type of model to handle
  */
 @SuppressWarnings("SameParameterValue")
-public abstract class DialogAction<M> extends BaseAction<M> {
+public abstract class DialogAction<M> extends BaseAction {
 
     @Override
-    public void onFireAction(final Context context, @Nullable final View view, final String actionType, @Nullable final M model) {
-        final Dialog dialog = createDialog(context, view, actionType, model);
+    public void onFireAction(@NonNull ActionArgs args) {
+        final Dialog dialog = createDialog(args);
         dialog.show();
     }
 
     /**
      * Creates dialog for showing before call {@link #onDialogActionFire}.
      * By default contains:
-     * - title, obtained by {@link #getDialogTitle(Context, String, Object)},
-     * - message, obtained by {@link #getDialogMessage(Context, String, Object)},
+     * - title, obtained by {@link #getDialogTitle(ActionParams)},
+     * - message, obtained by {@link #getDialogMessage(ActionParams)},
      * - negative button with label, obtained by {@link #getNegativeButtonTitleResId()},
-     *   which refuse action by click,
+     * which refuse action by click,
      * - positive button with label, obtained by {@link #getPositiveButtonTitleResId()},
-     *   which call {@link #onDialogActionFire} by click
+     * which call {@link #onDialogActionFire} by click
      *
-     * @param context       The Context, which generally get from view by {@link View#getContext()}
-     * @param view          The view, which can be used for prepare any visual effect (like animation),
-     *                      Generally it is that view which was clicked and initiated action to fire
-     * @param actionType    Type of the action which was executed. Can be null.
-     * @param model         The model which should be handled by the action. Can be null.
+     * @param args The action params, which appointed to the view and actually actionType
      * @return the dialog to show before call {@link #onDialogActionFire}.
      */
-    protected Dialog createDialog(final Context context, @Nullable final View view, final String actionType, @Nullable final M model) {
-        final String title = getDialogTitle(context, actionType, model);
-        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+    protected Dialog createDialog(@NonNull final ActionArgs args) {
+        final String title = getDialogTitle(args.params);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(args.params.getViewOrAppContext());
         if (title != null) builder.setTitle(title);
-        builder.setMessage(getDialogMessage(context, actionType, model))
+        builder.setMessage(getDialogMessage(args.params))
                 .setNegativeButton(getNegativeButtonTitleResId(), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        notifyOnActionDismiss("Dialog cancelled", view, actionType, model);
+                        notifyOnActionDismiss(args, "Dialog cancelled");
                     }
                 })
                 .setPositiveButton(getPositiveButtonTitleResId(), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        onDialogActionFire(context, view, actionType, model, null);
+                        onDialogActionFire(args);
                     }
                 })
                 .setOnCancelListener(new DialogInterface.OnCancelListener() {
                     @Override
                     public void onCancel(DialogInterface dialog) {
-                        notifyOnActionDismiss("Dialog cancelled", view, actionType, model);
+                        notifyOnActionDismiss(args, "Dialog cancelled");
                     }
                 });
         return builder.create();
@@ -90,24 +89,20 @@ public abstract class DialogAction<M> extends BaseAction<M> {
     /**
      * Provides title for dialog
      *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param actionType Type of the action which was executed. Can be null.
-     * @param model      The model which should be handled by the action. Can be null.
+     * @param params The action params, which appointed to the view
      * @return title for dialog
      */
-    protected String getDialogTitle(Context context, String actionType, M model) {
+    protected String getDialogTitle(@NonNull ActionParams params) {
         return null;
     }
 
     /**
      * Provides message for dialog
      *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param actionType Type of the action which was executed. Can be null.
-     * @param model      The model which should be handled by the action. Can be null.
+     * @param params The action params, which appointed to the view
      * @return message for dialog
      */
-    protected abstract String getDialogMessage(Context context, String actionType, M model);
+    protected abstract String getDialogMessage(@NonNull ActionParams params);
 
     /**
      * Provides resource id of the text to display in the positive button.
@@ -132,27 +127,9 @@ public abstract class DialogAction<M> extends BaseAction<M> {
     /**
      * Executes the action. Called if positive button on a dialog was clicked.
      *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param actionType Type of the action which was executed. Can be null.
-     * @param model      The model which should be handled by the action. Can be null.
+     * @param args The action params, which appointed to the view and actually actionType
      */
-    protected void onDialogActionFire(Context context, View view, String actionType, M model){
-        onDialogActionFire(context, view, actionType, model, null);
-    }
-
-    /**
-     * Executes the action. Called if positive button on a dialog was clicked.
-     *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param actionType Type of the action which was executed. Can be null.
-     * @param model      The model which should be handled by the action. Can be null.
-     * @param payload    The payload, for example the parameter for the request
-     */
-    protected void onDialogActionFire(Context context, View view, String actionType, M model, @Nullable Object payload){
+    protected void onDialogActionFire(@NonNull final ActionArgs args) {
     }
 
     /**
@@ -163,7 +140,7 @@ public abstract class DialogAction<M> extends BaseAction<M> {
      * @param <M>           Type of model which can be handled
      * @return the action which can show dialog before fired.
      */
-    public static <M> DialogAction<M> wrap(String dialogMessage, Action<M> action) {
+    public static <M> DialogAction<M> wrap(String dialogMessage, Action action) {
         return new DialogActionWrapper<>(dialogMessage, action);
     }
 
@@ -173,7 +150,7 @@ public abstract class DialogAction<M> extends BaseAction<M> {
      * @param <M>
      */
     private static class DialogActionWrapper<M> extends DialogAction<M> {
-        private final Action<M> mAction;
+        private final Action mAction;
         private final String mDialogMessage;
 
         /**
@@ -182,20 +159,20 @@ public abstract class DialogAction<M> extends BaseAction<M> {
          * @param dialogMessage The message for dialog to show on action fire
          * @param action        The action to fire if positive button on the dialog clicked
          */
-        public DialogActionWrapper(String dialogMessage, Action<M> action) {
+        public DialogActionWrapper(String dialogMessage, Action action) {
             super();
             mAction = action;
             mDialogMessage = dialogMessage;
         }
 
         @Override
-        protected String getDialogMessage(Context context, String actionType, M model) {
+        protected String getDialogMessage(@NonNull ActionParams params) {
             return mDialogMessage;
         }
 
         @Override
-        protected void onDialogActionFire(Context context, View view, String actionType, M model, Object payload) {
-            if (mAction != null) mAction.onFireAction(context, view, actionType, model);
+        protected void onDialogActionFire(@NonNull ActionArgs args) {
+            if (mAction != null) mAction.onFireAction(args);
         }
 
         @Override

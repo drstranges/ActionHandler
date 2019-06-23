@@ -17,14 +17,15 @@
 package com.drextended.databinding.action;
 
 import android.content.Context;
-import androidx.annotation.Nullable;
-import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
+import com.drextended.actionhandler.ActionArgs;
 import com.drextended.actionhandler.action.BaseAction;
 import com.drextended.databinding.R;
 
-public class ShowToastAction extends BaseAction<String> {
+public class ShowToastAction extends BaseAction {
 
     @Override
     public boolean isModelAccepted(Object model) {
@@ -32,9 +33,15 @@ public class ShowToastAction extends BaseAction<String> {
     }
 
     @Override
-    public void onFireAction(Context context, @Nullable View view, String actionType, @Nullable String model) {
-        Toast.makeText(context.getApplicationContext(),
-                context.getString(R.string.toast_message, model), Toast.LENGTH_SHORT).show();
-        notifyOnActionFired(view, actionType, model);
+    public void onFireAction(@NonNull ActionArgs args) {
+        Context appContext = args.params.appContext;
+
+        Toast.makeText(
+                appContext,
+                appContext.getString(R.string.toast_message, args.params.model),
+                Toast.LENGTH_SHORT
+        ).show();
+
+        notifyOnActionFired(args);
     }
 }

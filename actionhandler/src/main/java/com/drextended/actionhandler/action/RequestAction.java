@@ -16,10 +16,11 @@
 
 package com.drextended.actionhandler.action;
 
-import android.content.Context;
+import androidx.annotation.CallSuper;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.view.View;
 
+import com.drextended.actionhandler.ActionArgs;
 import com.drextended.actionhandler.R;
 import com.drextended.actionhandler.util.ProgressBarController;
 
@@ -41,7 +42,7 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * Base action for implementing call a network request
      *
      * @param showProgressEnabled Set true to show progress dialog while request
-     * @param showDialogEnabled          Set true to show dialog before action fired
+     * @param showDialogEnabled   Set true to show dialog before action fired
      */
     public RequestAction(boolean showProgressEnabled, boolean showDialogEnabled) {
         mShowProgressEnabled = showProgressEnabled;
@@ -69,86 +70,46 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
     }
 
     @Override
-    public void onFireAction(Context context, @Nullable View view, String actionType, @Nullable M model) {
+    public void onFireAction(@NonNull ActionArgs args) {
         if (mShowDialogEnabled) {
-            super.onFireAction(context, view, actionType, model);
+            super.onFireAction(args);
         } else {
-            makeRequest(context, view, actionType, model, null);
+            makeRequest(args);
         }
     }
 
     @Override
-    protected void onDialogActionFire(Context context, View view, String actionType, M model, Object payload) {
-        makeRequest(context, view, actionType, model, payload);
+    protected void onDialogActionFire(@NonNull ActionArgs args) {
+        makeRequest(args);
     }
 
     /**
      * Prepare and call a network request
      *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param actionType Type of the action which was executed. Can be null.
-     * @param model      The model which should be handled by the action. Can be null.
+     * @param args The action params, which appointed to the view and actually actionType
      */
-    public void makeRequest(Context context, View view, String actionType, final M model) {
-        makeRequest(context, view, actionType, model, null);
-    }
-
-    /**
-     * Prepare and call a network request
-     *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param actionType Type of the action which was executed. Can be null.
-     * @param model      The model which should be handled by the action. Can be null.
-     * @param payload    The payload from {@link #onFireAction}.
-     */
-    public void makeRequest(Context context, View view, String actionType, final M model, @Nullable Object payload) {
-        onRequestStarted(context, view, actionType, model, payload);
-        onMakeRequest(context, view, actionType, model, payload);
+    public void makeRequest(@NonNull ActionArgs args) {
+        onRequestStarted(args);
+        onMakeRequest(args);
     }
 
     /**
      * Called on request started. Shows progress dialog if enabled.
      *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param actionType Type of the action which was executed. Can be null.
-     * @param model      The model which should be handled by the action. Can be null.
+     * @param args The action params, which appointed to the view and actually actionType
      */
-    protected void onRequestStarted(Context context, View view, String actionType, M model) {
-    }
-
-    /**
-     * Called on request started. Shows progress dialog if enabled.
-     *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param actionType Type of the action which was executed. Can be null.
-     * @param model      The model which should be handled by the action. Can be null.
-     * @param payload    The payload from {@link #makeRequest(Context, View, String, Object, Object)}.
-     */
-    protected void onRequestStarted(Context context, View view, String actionType, M model, @Nullable Object payload) {
-        if (mShowProgressEnabled) showProgressDialog(context, view, actionType, model);
-        onRequestStarted(context, view, actionType, model);
+    protected void onRequestStarted(@NonNull ActionArgs args) {
+        if (mShowProgressEnabled) showProgressDialog(args);
     }
 
     /**
      * Provides message for progress dialog
      *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param actionType Type of the action which was executed. Can be null.
-     * @param model      The model which should be handled by the action. Can be null.
+     * @param args The action params, which appointed to the view and actually actionType
      * @return message for progress dialog
      */
-    protected String getProgressDialogMessage(Context context, View view, String actionType, M model) {
-        return context.getString(R.string.action_handler_dialog_message_wait);
+    protected String getProgressDialogMessage(@NonNull ActionArgs args) {
+        return args.params.appContext.getString(R.string.action_handler_dialog_message_wait);
     }
 
     /**
@@ -156,29 +117,26 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * Hides progress dialog if enabled and call {@link #notifyOnActionFired}
      * Should be called manually in request callback.
      *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param actionType Type of the action which was executed.
-     * @param oldModel   The model which was used in request.
-     * @param response   network response
+     * @param args     The action params, which appointed to the view and actually actionType
+     * @param response network response
      */
-    protected void onResponseSuccess(Context context, View view, String actionType, M oldModel, RM response) {
+    @CallSuper
+    protected void onResponseSuccess(@NonNull ActionArgs args, @Nullable RM response) {
         if (mShowProgressEnabled) hideProgressDialog();
-        notifyOnActionFired(view, actionType, oldModel, response);
+        notifyOnActionFired(args, response);
     }
 
     /**
      * Call for show progress dialog
      *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param actionType Type of the action which was executed. Can be null.
-     * @param model      The model which should be handled by the action. Can be null.
+     * @param args The action params, which appointed to the view and actually actionType
      */
-    public void showProgressDialog(Context context, View view, String actionType, M model) {
-        ProgressBarController.showProgressDialog(context, mProgressTag, getProgressDialogMessage(context, view, actionType, model));
+    public void showProgressDialog(@NonNull ActionArgs args) {
+        ProgressBarController.showProgressDialog(
+                args.params.getViewOrAppContext(),
+                mProgressTag,
+                getProgressDialogMessage(args)
+        );
     }
 
     /**
@@ -193,30 +151,22 @@ public abstract class RequestAction<RM, M> extends DialogAction<M> {
      * Hides progress dialog if enabled
      * Should be called manually in request callback.
      *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param actionType Type of the action which was executed.
-     * @param oldModel   The model which was used in request.
-     * @param e          The Error
+     * @param args The action params, which appointed to the view and actually actionType
+     * @param e    The Error
      */
-    protected void onResponseError(Context context, View view, String actionType, M oldModel, Throwable e) {
+    @CallSuper
+    protected void onResponseError(@NonNull ActionArgs args, @NonNull Throwable e) {
         if (mShowProgressEnabled) hideProgressDialog();
-        notifyOnActionError(e, view, actionType, oldModel);
+        notifyOnActionError(args, e);
     }
 
     /**
      * Implement network request there.
-     * Note: You should call {@link #onResponseSuccess(Context, View, String, Object, Object)} if request finished successfully
-     * and {@link #onResponseError(Context, View, String, Object, Throwable)} if it is failed.
+     * Note: You should call {@link #onResponseSuccess(ActionArgs, Object)} if request finished successfully
+     * and {@link #onResponseError(ActionArgs, Throwable)} if it is failed.
      *
-     * @param context    The Context, which generally get from view by {@link View#getContext()}
-     * @param view       The view, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire
-     * @param actionType Type of the action which was executed.
-     * @param model      The model which was used in request.
-     * @param payload    The payload from {@link #makeRequest(Context, View, String, Object, Object)}.
+     * @param args The action params, which appointed to the view and actually actionType
      */
-    protected abstract void onMakeRequest(Context context, View view, String actionType, final M model, @Nullable Object payload);
+    protected abstract void onMakeRequest(@NonNull ActionArgs args);
 
 }

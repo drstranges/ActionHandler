@@ -17,13 +17,17 @@
 package com.drextended.databinding.action;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityOptionsCompat;
 import android.view.View;
 
+import com.drextended.actionhandler.ActionArgs;
 import com.drextended.actionhandler.action.IntentAction;
 import com.drextended.databinding.view.SecondActivity;
 
@@ -36,23 +40,25 @@ public class OpenSecondActivity extends IntentAction<String> {
 
     @Nullable
     @Override
-    public Intent getIntent(@Nullable View view, Context context, String actionType, String model) {
-        return SecondActivity.getIntent(context, model);
+    public Intent getIntent(@NonNull ActionArgs args) {
+        return SecondActivity.getIntent(args.params.getViewOrAppContext(), args.params.getModel(String.class));
     }
 
     @Override
-    protected ActivityOptionsCompat prepareTransition(Context context, View view, Intent intent) {
-        Activity activity = null;
-        if (context instanceof Activity) {
-            activity = (Activity) context;
-        } else if (context instanceof ContextWrapper) {
-            final Context baseContext = ((ContextWrapper) context).getBaseContext();
-            if (baseContext instanceof Activity) {
-                activity = (Activity) baseContext;
-            }
+    protected void startActivity(@NonNull Context context, @NonNull Intent intent, @NonNull ActionArgs args) throws ActivityNotFoundException {
+        ActivityOptionsCompat transition = prepareTransition(args);
+        if (transition != null) {
+            context.startActivity(intent, transition.toBundle());
+        } else {
+            super.startActivity(context, intent, args);
         }
+    }
 
-        if (activity == null) return null;
+    private ActivityOptionsCompat prepareTransition(@NonNull ActionArgs args) {
+        View view = args.params.tryGetView();
+        Activity activity = args.params.tryGetActivity();
+
+        if (activity == null || view == null) return null;
         return ActivityOptionsCompat
                 .makeSceneTransitionAnimation(activity, view, SecondActivity.TRANSITION_NAME);
     }

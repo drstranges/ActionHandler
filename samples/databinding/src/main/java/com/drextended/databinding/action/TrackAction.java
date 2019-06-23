@@ -17,10 +17,13 @@
 package com.drextended.databinding.action;
 
 import android.content.Context;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
 
+import com.drextended.actionhandler.ActionArgs;
 import com.drextended.actionhandler.action.Action;
 
 public class TrackAction implements Action {
@@ -31,7 +34,7 @@ public class TrackAction implements Action {
     }
 
     @Override
-    public void onFireAction(Context context, @Nullable View view, String actionType, @Nullable Object model) {
-        Log.d("tagTrackAction", "onFireAction: " + actionType + ", model: " + model);
+    public void onFireAction(@NonNull ActionArgs args) {
+        Log.d("tagTrackAction", "onFireAction: " + args.fireActionType + ", model: " + args.params.model);
     }
 }

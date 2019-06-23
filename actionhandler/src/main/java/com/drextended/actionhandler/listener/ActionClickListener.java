@@ -18,6 +18,9 @@ package com.drextended.actionhandler.listener;
 
 import android.view.View;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 /**
  * Interface definition for a callback to be invoked when a view with an action is clicked.
  */
@@ -25,9 +28,15 @@ public interface ActionClickListener {
     /**
      * Called when a view with an action is clicked.
      *
-     * @param view          The view that was clicked.
-     * @param actionType    The action type, which appointed to the view
-     * @param model         The model, which  appointed to the view and should be handled
+     * @param view       The view that was clicked.
+     * @param actionType The action type, which appointed to the view
+     * @param model      The model, which  appointed to the view and should be handled
+     * @param actionTag  The tag, which can be used to distinct click source or etc.
      */
-    void onActionClick(final View view, final String actionType, final Object model);
+    void onActionClick(
+            @NonNull final View view,
+            @Nullable final String actionType,
+            @Nullable final Object model,
+            @Nullable final Object actionTag
+    );
 }

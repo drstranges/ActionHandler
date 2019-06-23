@@ -15,9 +15,11 @@
  */
 package com.drextended.actionhandler.action;
 
-import android.content.Context;
-import android.view.View;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import com.drextended.actionhandler.ActionArgs;
+import com.drextended.actionhandler.ActionParams;
 import com.drextended.actionhandler.listener.ActionFireInterceptor;
 import com.drextended.actionhandler.listener.OnActionDismissListener;
 import com.drextended.actionhandler.listener.OnActionErrorListener;
@@ -30,9 +32,8 @@ import java.util.Set;
  * Extent from BaseAction all you custom actions.
  * BaseAction contain base logic to notify listeners if action fired.
  *
- * @param <M> base type, which can be handled
  */
-public abstract class BaseAction<M> implements Action<M> {
+public abstract class BaseAction implements Action {
 
     /**
      * Listeners for action fired events.
@@ -56,7 +57,7 @@ public abstract class BaseAction<M> implements Action<M> {
     protected Set<ActionFireInterceptor> mActionFireInterceptors = new HashSet<>(1);
 
     /**
-     * Add a listener that will be called when method {@link #notifyOnActionFired(View, String, Object)}
+     * Add a listener that will be called when method {@link #notifyOnActionFired(ActionArgs)}
      * called. Generally if action fired successfully.
      *
      * @param listener The listener that will be called when action fired successfully.
@@ -83,7 +84,7 @@ public abstract class BaseAction<M> implements Action<M> {
 
 
     /**
-     * Add a listener that will be called when method {@link #notifyOnActionError(Throwable, View, String, Object)}
+     * Add a listener that will be called when method {@link #notifyOnActionError(ActionArgs, Throwable)}
      * called. Generally if action fired with error.
      *
      * @param listener The listener that will be called when action fired with error.
@@ -109,7 +110,7 @@ public abstract class BaseAction<M> implements Action<M> {
     }
 
     /**
-     * Add a listener that will be called when method {@link #notifyOnActionDismiss(String, View, String, Object)}
+     * Add a listener that will be called when method {@link #notifyOnActionDismiss(ActionArgs, String)}
      * called. Generally if action was dismissed by user.
      *
      * @param listener The listener that will be called when action dismissed.
@@ -174,64 +175,57 @@ public abstract class BaseAction<M> implements Action<M> {
     /**
      * Notify any registered listeners that the action has been fired.
      *
-     * @param view       The View, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire.
-     * @param actionType type of the action
-     * @param model      model, which was handled
+     * @param args The action params, which used while firing action
      */
-    public void notifyOnActionFired(View view, String actionType, Object model) {
-        notifyOnActionFired(view, actionType, model, null);
+    public void notifyOnActionFired(@NonNull ActionArgs args) {
+        notifyOnActionFired(args, null);
     }
 
     /**
      * Notify any registered listeners that the action has been fired.
      *
-     * @param view       The View, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire.
-     * @param actionType type of the action
-     * @param model      model, which was handled
-     * @param result     The result of action
+     * @param args   The action params, which used while firing action
+     * @param result The result of action
      */
-    public void notifyOnActionFired(View view, String actionType, Object model, Object result) {
+    public void notifyOnActionFired(@NonNull ActionArgs args, @Nullable Object result) {
         for (OnActionFiredListener listener : mActionFiredListeners) {
-            listener.onActionFired(view, actionType, model, result);
+            listener.onActionFired(args, result);
         }
     }
 
     /**
      * Notify any registered listeners that the action has been executed with error.
      *
-     * @param throwable  The error
-     * @param view       The View, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire.
-     * @param actionType type of the action
-     * @param model      model, which was handled
+     * @param args      The action params, which used while firing action
+     * @param throwable The error
      */
-    public void notifyOnActionError(Throwable throwable, View view, String actionType, Object model) {
+    public void notifyOnActionError(@NonNull ActionArgs args, @Nullable Throwable throwable) {
         for (OnActionErrorListener listener : mActionErrorListeners) {
-            listener.onActionError(throwable, view, actionType, model);
+            listener.onActionError(args, throwable);
         }
     }
 
     /**
      * Notify any registered listeners that the action has been executed with error.
      *
-     * @param reason     The reason to dismiss
-     * @param view       The View, which can be used for prepare any visual effect (like animation),
-     *                   Generally it is that view which was clicked and initiated action to fire.
-     * @param actionType type of the action
-     * @param model      model, which was handled
+     * @param reason The reason to dismiss
+     * @param args   The action params, which used while firing action
      */
-    public void notifyOnActionDismiss(String reason, View view, String actionType, Object model) {
+    public void notifyOnActionDismiss(@NonNull ActionArgs args, @Nullable String reason) {
         for (OnActionDismissListener listener : mActionDismissListeners) {
-            listener.onActionDismiss(reason, view, actionType, model);
+            listener.onActionDismiss(args, reason);
         }
     }
 
-    protected boolean interceptActionFire(Context context, View view, String actionType, Object model, Action action) {
+    protected boolean interceptActionFire(
+            @NonNull ActionParams actionParams,
+            @NonNull String actionType,
+            @NonNull Action action
+    ) {
         if (mActionFireInterceptors != null) {
             for (ActionFireInterceptor interceptor : mActionFireInterceptors) {
-                if (interceptor.onInterceptActionFire(context, view, actionType, model, action)) return true;
+                if (interceptor.onInterceptActionFire(actionParams, actionType, action))
+                    return true;
             }
         }
         return false;

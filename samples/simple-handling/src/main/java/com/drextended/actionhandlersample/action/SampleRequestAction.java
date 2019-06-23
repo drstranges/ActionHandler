@@ -22,6 +22,11 @@ import android.os.Handler;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.drextended.actionhandler.ActionArgs;
+import com.drextended.actionhandler.ActionParams;
 import com.drextended.actionhandler.action.RequestAction;
 import com.drextended.actionhandlersample.R;
 
@@ -39,34 +44,32 @@ public class SampleRequestAction extends RequestAction<String, String> {
     }
 
     @Override
-    protected String getDialogMessage(Context context, String actionType, String model) {
-        return context.getString(R.string.action_request_dialog_message, model);
+    protected String getDialogMessage(@NonNull ActionParams params) {
+        return params.appContext.getString(R.string.action_request_dialog_message, params.model);
     }
 
     @Override
-    protected void onMakeRequest(final Context context, final View view, final String actionType, final String model, Object payload) {
+    protected void onMakeRequest(@NonNull ActionArgs args) {
         final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (context instanceof Activity && ((Activity) context).isFinishing()) return;
-                if (mCount++ % 3 == 0) {
-                    onResponseError(context, view, actionType, model, new Exception("Test Error!:) Just repeat this request!"));
-                } else {
-                    onResponseSuccess(context, view, actionType, model, "Request has been done successfully");
-                }
+        handler.postDelayed(() -> {
+            Activity activity = args.params.tryGetActivity();
+            if (activity != null && (activity.isFinishing() || activity.isDestroyed())) return;
+            if (mCount++ % 3 == 0) {
+                onResponseError(args, new Exception("Test Error!:) Just repeat this request!"));
+            } else {
+                onResponseSuccess(args, "Request has been done successfully");
             }
         }, 3000);
     }
 
     @Override
-    protected void onResponseSuccess(Context context, View view, String actionType, String oldModel, String response) {
-        super.onResponseSuccess(context, view, actionType, oldModel, response);
-        Toast.makeText(context, response, Toast.LENGTH_SHORT).show();
+    protected void onResponseSuccess(@NonNull ActionArgs args, @Nullable String response) {
+        super.onResponseSuccess(args, response);
+        Toast.makeText(args.params.appContext, response, Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    protected void onResponseError(Context context, View view, String actionType, String oldModel, Throwable e) {
-        super.onResponseError(context, view, actionType, oldModel, e);
+    protected void onResponseError(@NonNull ActionArgs args, @NonNull Throwable e) {
+        super.onResponseError(args, e);
     }
 }

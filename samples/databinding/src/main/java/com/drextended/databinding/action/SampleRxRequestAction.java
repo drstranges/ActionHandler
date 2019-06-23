@@ -17,10 +17,14 @@
 package com.drextended.databinding.action;
 
 import android.content.Context;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.view.View;
 import android.widget.Toast;
 
+import com.drextended.actionhandler.ActionArgs;
+import com.drextended.actionhandler.ActionParams;
 import com.drextended.actionhandler.action.RxRequestAction;
 import com.drextended.databinding.R;
 
@@ -40,17 +44,14 @@ public class SampleRxRequestAction extends RxRequestAction<String, String> {
 
     @Nullable
     @Override
-    protected Maybe<String> getRequest(Context context, View view, String actionType, String model, Object payload) {
+    protected Maybe<String> getRequest(@NonNull ActionArgs args) {
         if (mCount++ % 3 == 0) {
-            return Maybe.just("").delay(2000, TimeUnit.MILLISECONDS).flatMap(new Function<String, MaybeSource<? extends String>>() {
-
-                @Override
-                public MaybeSource<? extends String> apply(String s) {
-                    return Maybe.error(new Throwable("Request has failed"));
-                }
-            });
+            return Maybe.just("")
+                    .delay(2000, TimeUnit.MILLISECONDS)
+                    .flatMap(s -> Maybe.error(new Throwable("Request has failed")));
         } else {
-            return Maybe.just("Request has been done successfully").delay(2000, TimeUnit.MILLISECONDS);
+            return Maybe.just("Request has been done successfully")
+                    .delay(2000, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -60,20 +61,19 @@ public class SampleRxRequestAction extends RxRequestAction<String, String> {
     }
 
     @Override
-    protected String getDialogMessage(Context context, String actionType, String model) {
-        return context.getString(R.string.action_request_dialog_message, model);
-    }
-
-
-    @Override
-    protected void onResponseSuccess(Context context, View view, String actionType, String oldModel, String response) {
-        super.onResponseSuccess(context, view, actionType, oldModel, response);
-        Toast.makeText(context, response, Toast.LENGTH_SHORT).show();
+    protected String getDialogMessage(@NonNull ActionParams params) {
+        return params.appContext.getString(R.string.action_request_dialog_message, params.model);
     }
 
     @Override
-    protected void onResponseError(Context context, View view, String actionType, String oldModel, Throwable e) {
-        super.onResponseError(context, view, actionType, oldModel, e);
-        Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+    protected void onResponseSuccess(@NonNull ActionArgs args, @Nullable String response) {
+        super.onResponseSuccess(args, response);
+        Toast.makeText(args.params.appContext, response, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onResponseError(@NonNull ActionArgs args, @NonNull Throwable e) {
+        super.onResponseError(args, e);
+        Toast.makeText(args.params.appContext, e.getMessage(), Toast.LENGTH_SHORT).show();
     }
 }

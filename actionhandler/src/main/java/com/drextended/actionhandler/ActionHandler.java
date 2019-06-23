@@ -20,6 +20,9 @@ import android.content.Context;
 import android.util.Log;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.drextended.actionhandler.action.Action;
 import com.drextended.actionhandler.action.ActionFactory;
 import com.drextended.actionhandler.action.BaseAction;
@@ -47,6 +50,8 @@ import java.util.Set;
  */
 @SuppressWarnings("WeakerAccess")
 public class ActionHandler implements ActionClickListener, OnActionFiredListener, OnActionErrorListener, OnActionDismissListener, ActionFireInterceptor {
+
+    public static final String TAG = "ActionHandler";
 
     // Actions which was added to the handler
     protected final List<ActionPair> mActions = new ArrayList<>();
@@ -87,6 +92,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
 
     /**
      * Set factory for crate actions lazy.
+     *
      * @param actionFactory the factory
      */
     public void setActionFactory(ActionFactory actionFactory) {
@@ -107,7 +113,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
     /**
      * Set new callback to be invoked when an action is executed successfully
      * Note: It is called only for BaseActions.
-     * You should call {@link BaseAction#notifyOnActionFired(View, String, Object)} to invoke this callback.
+     * You should call {@link BaseAction#notifyOnActionFired(ActionArgs)} to invoke this callback.
      *
      * @param actionFiredListener new callback to be invoked when an action is executed successfully
      * @deprecated Use {@link #addActionFiredListener(OnActionFiredListener)} instead
@@ -126,7 +132,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
     /**
      * Add new callback to be invoked when an action is executed successfully
      * Note: It is called only for BaseActions.
-     * You should call {@link BaseAction#notifyOnActionFired(View, String, Object)} to invoke this callback.
+     * You should call {@link BaseAction#notifyOnActionFired(ActionArgs)} to invoke this callback.
      *
      * @param actionFiredListener new callback to be invoked when an action is executed successfully
      */
@@ -159,7 +165,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
 
     /**
      * Add new callback to be invoked when an action is executed with error
-     * You should call {@link BaseAction#notifyOnActionError(Throwable, View, String, Object)} to invoke this callback.
+     * You should call {@link BaseAction#notifyOnActionError(ActionArgs, Throwable)} to invoke this callback.
      *
      * @param actionErrorListener new callback to be invoked when an action is executed with error
      */
@@ -192,7 +198,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
 
     /**
      * Add new callback to be invoked when an action is executed but dismissed
-     * You should call {@link BaseAction#notifyOnActionDismiss(String, View, String, Object)} to invoke this callback.
+     * You should call {@link BaseAction#notifyOnActionDismiss(ActionArgs, String)} to invoke this callback.
      *
      * @param listener new callback to be invoked when an action is executed with error
      */
@@ -345,35 +351,35 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
     }
 
     @Override
-    public void onActionFired(View view, String actionType, Object model, Object result) {
+    public void onActionFired(@NonNull ActionArgs args, @Nullable Object result) {
         if (mOnActionFiredListeners != null) {
             for (final OnActionFiredListener listener : mOnActionFiredListeners) {
-                listener.onActionFired(view, actionType, model, result);
+                listener.onActionFired(args, result);
             }
         }
     }
 
     @Override
-    public void onActionError(Throwable throwable, View view, String actionType, Object model) {
+    public void onActionError(@NonNull ActionArgs args, @Nullable Throwable throwable) {
         if (mOnActionErrorListeners != null) {
             for (final OnActionErrorListener listener : mOnActionErrorListeners) {
-                listener.onActionError(throwable, view, actionType, model);
+                listener.onActionError(args, throwable);
             }
         }
     }
 
     @Override
-    public void onActionDismiss(String reason, View view, String actionType, Object model) {
+    public void onActionDismiss(@NonNull ActionArgs args, @Nullable String reason) {
         if (mOnActionDismissListeners != null) {
             for (final OnActionDismissListener listener : mOnActionDismissListeners) {
-                listener.onActionDismiss(reason, view, actionType, model);
+                listener.onActionDismiss(args, reason);
             }
         }
     }
 
     @Override
-    public boolean onInterceptActionFire(Context context, View view, String actionType, Object model, Action action) {
-        return interceptActionFire(context, view, actionType, model, action);
+    public boolean onInterceptActionFire(@NonNull ActionParams actionParams, @Nullable String actionType, @NonNull Action action) {
+        return interceptActionFire(actionParams, actionType, action);
     }
 
     /**
@@ -391,19 +397,49 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
     }
 
     /**
+     * Check if there is at least one action that can handle {@code actionType} with {@code model}
+     *
+     * @param actionType The action type to check
+     * @param model      The model to check
+     * @return true if there is at least one action that can handle {@code actionType} with {@code model},
+     * false otherwise.
+     */
+    public boolean canHandle(@NonNull final String actionType, @Nullable Object model) {
+        for (ActionPair actionPair : mActions) {
+            if (equals(actionType, actionPair.actionType) &&
+                    actionPair.action.isModelAccepted(model)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Called when a view with an action is clicked.
      *
      * @param view       The view that was clicked.
      * @param actionType The action type, which appointed to the view
      * @param model      The model, which  appointed to the view and should be handled
+     * @param actionTag  The tag, which can be used to distinct click source or etc.
      */
     @Override
-    public void onActionClick(View view, String actionType, Object model) {
-        if (view == null) return;
-        final Context context = view.getContext();
-
-        fireAction(context, view, actionType, model);
-
+    public void onActionClick(
+            @NonNull View view,
+            @Nullable String actionType,
+            @Nullable Object model,
+            @Nullable Object actionTag
+    ) {
+        if (actionType == null) {
+            Log.w(TAG, "onActionClick fired, but actionType is null: action dropped!");
+            return;
+        }
+        fireAction(new ActionParams(
+                view.getContext(),
+                view,
+                actionType,
+                model,
+                actionTag
+        ));
     }
 
     /**
@@ -414,22 +450,73 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
      * @param actionType The action type, which appointed to the view
      * @param model      The model, which  appointed to the view and should be handled
      */
-    public void fireAction(Context context, View view, String actionType, Object model) {
-        if (!checkDebounceTimeElapsed(actionType)) {
+    @Deprecated
+    public void fireAction(
+            @NonNull Context context,
+            @Nullable View view,
+            @NonNull String actionType,
+            @Nullable Object model
+    ) {
+        //noinspection ConstantConditions
+        if (actionType == null) {
+            Log.w(TAG, "fireAction fired, but actionType is null: action dropped!");
+            return;
+        }
+        fireAction(new ActionParams(
+                context,
+                view,
+                actionType,
+                model,
+                null
+        ));
+
+    }
+
+    /**
+     * Call for initiate actions to fire.
+     *
+     * @param context    The Context, which generally get from view by {@link View#getContext()}
+     * @param view       The view that was clicked.
+     * @param actionType The action type, which appointed to the view
+     * @param model      The model, which  appointed to the view and should be handled
+     * @param actionTag  The tag, which can be used to distinct click source or etc.
+     */
+    public void fireAction(
+            @NonNull Context context,
+            @Nullable View view,
+            @NonNull String actionType,
+            @Nullable Object model,
+            @Nullable Object actionTag
+    ) {
+        //noinspection ConstantConditions
+        if (actionType == null) {
+            Log.w(TAG, "onActionClick fired, but actionType is null: action dropped!");
+            return;
+        }
+        fireAction(new ActionParams(
+                context,
+                view,
+                actionType,
+                model,
+                actionTag
+        ));
+    }
+
+    public void fireAction(ActionParams actionParams) {
+        if (!checkDebounceTimeElapsed(actionParams.actionType)) {
             Log.d("ActionHandler", "Debounce time not elapsed. Action intercepted!");
             return;
         }
 
-        if (interceptAction(context, view, actionType, model)) return;
+        if (interceptAction(actionParams)) return;
 
-        List<ActionPair> actionPairs = getActionsForActionType(actionType);
+        List<ActionPair> actionPairs = getActionsForActionType(actionParams.actionType);
 
         for (ActionPair actionPair : actionPairs) {
             final Action action = actionPair.action;
-            if (action != null && action.isModelAccepted(model)) {
-                if (interceptActionFire(context, view, actionPair.actionType, model, action)) continue;
-                //noinspection unchecked
-                action.onFireAction(context, view, actionPair.actionType, model);
+            if (action.isModelAccepted(actionParams.model)) {
+                if (interceptActionFire(actionParams, actionPair.actionType, action)) continue;
+                action.onFireAction(new ActionArgs(actionParams, actionPair.actionType));
             }
         }
     }
@@ -485,19 +572,23 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
         return true;
     }
 
-    private boolean interceptAction(Context context, View view, String actionType, Object model) {
+    private boolean interceptAction(@NonNull ActionParams actionParams) {
         if (mActionInterceptors != null) {
             for (ActionInterceptor interceptor : mActionInterceptors) {
-                if (interceptor.onInterceptAction(context, view, actionType, model)) return true;
+                if (interceptor.onInterceptAction(actionParams)) return true;
             }
         }
         return false;
     }
 
-    private boolean interceptActionFire(Context context, View view, String actionType, Object model, Action action) {
+    private boolean interceptActionFire(
+            @NonNull ActionParams actionParams,
+            @Nullable String actionType,
+            @NonNull Action action
+    ) {
         if (mActionFireInterceptors != null) {
             for (ActionFireInterceptor interceptor : mActionFireInterceptors) {
-                if (interceptor.onInterceptActionFire(context, view, actionType, model, action)) {
+                if (interceptor.onInterceptActionFire(actionParams, actionType, action)) {
                     return true;
                 }
             }
@@ -539,6 +630,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
 
         /**
          * Set ActionFactory for lazy instantiating actions
+         *
          * @param factory the factory
          * @return the builder
          */
@@ -551,6 +643,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
          * Set ActionFactory for lazy instantiating actions
          * Simplified version of {@link #withActionFactory(ActionFactory)}
          * that returns single action for given actionType instead of array of actions
+         *
          * @param factory the factory
          * @return the builder
          */
@@ -574,7 +667,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
         /**
          * Set new callback to be invoked when an action is executed successfully
          * Note: It is called only for BaseActions.
-         * You should call {@link BaseAction#notifyOnActionFired(View, String, Object)} to invoke this callback.
+         * You should call {@link BaseAction#notifyOnActionFired(ActionArgs)} to invoke this callback.
          *
          * @param actionFiredListener new callback to be invoked when an action is executed successfully
          * @return the builder
@@ -589,7 +682,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
         /**
          * Add new callback to be invoked when an action is executed successfully
          * Note: It is called only for BaseActions.
-         * You should call {@link BaseAction#notifyOnActionFired(View, String, Object)} to invoke this callback.
+         * You should call {@link BaseAction#notifyOnActionFired(ActionArgs)} to invoke this callback.
          *
          * @param actionFiredListener new callback to be invoked when an action is executed successfully
          * @return the builder
@@ -605,7 +698,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
         /**
          * Add new callback to be invoked when an action is executed with error
          * Note: It is called only for BaseActions.
-         * You should call {@link BaseAction#notifyOnActionError(Throwable, View, String, Object)} to invoke this callback.
+         * You should call {@link BaseAction#notifyOnActionError(ActionArgs, Throwable)} to invoke this callback.
          *
          * @param actionErrorListener new callback to be invoked when an action is executed successfully
          * @return the builder
@@ -621,7 +714,7 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
         /**
          * Add new callback to be invoked when an action is executed but dismissed
          * Note: It is called only for BaseActions.
-         * You should call {@link BaseAction#notifyOnActionDismiss(String, View, String, Object)} to invoke this callback.
+         * You should call {@link BaseAction#notifyOnActionDismiss(ActionArgs, String)} to invoke this callback.
          *
          * @param listener new callback to be invoked when an action was dismissed
          * @return the builder
@@ -749,44 +842,4 @@ public class ActionHandler implements ActionClickListener, OnActionFiredListener
         }
     }
 
-    /**
-     * Holder for an action and corresponded type
-     */
-    public static class ActionPair {
-        public String actionType;
-        public Action action;
-
-        public ActionPair(String actionType, Action action) {
-            this.actionType = actionType;
-            this.action = action;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            final ActionPair that = (ActionPair) o;
-
-            if (actionType != null ? !actionType.equals(that.actionType) : that.actionType != null)
-                return false;
-            return action != null ? action.equals(that.action) : that.action == null;
-
-        }
-
-        @Override
-        public int hashCode() {
-            int result = actionType != null ? actionType.hashCode() : 0;
-            result = 31 * result + (action != null ? action.hashCode() : 0);
-            return result;
-        }
-
-        @Override
-        public String toString() {
-            return "ActionPair{" +
-                    "actionType='" + actionType + '\'' +
-                    ", action=" + action +
-                    '}';
-        }
-    }
 }
